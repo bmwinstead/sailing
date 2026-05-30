@@ -90,5 +90,9 @@ spec:
         existingClaim: media-tv
         globalMounts:
           - path: /tv
+      downloads:
+        existingClaim: media-downloads
+        globalMounts:
+          - path: /downloads
       tmp:
         type: emptyDir
