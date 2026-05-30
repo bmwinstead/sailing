@@ -12,7 +12,7 @@ spec:
   resources:
     requests:
       storage: 1Ti
-  storageClassName: smb
+  storageClassName: media
   volumeName: media-tv
 ---
 apiVersion: v1
@@ -28,7 +28,7 @@ spec:
   resources:
     requests:
       storage: 1Ti
-  storageClassName: smb
+  storageClassName: media
   volumeName: media-movies
 ---
 apiVersion: v1
@@ -44,7 +44,7 @@ spec:
   resources:
     requests:
       storage: 1Ti
-  storageClassName: smb
+  storageClassName: media
   volumeName: media-books
 ---
 apiVersion: v1
@@ -60,7 +60,7 @@ spec:
   resources:
     requests:
       storage: 1Ti
-  storageClassName: smb
+  storageClassName: media
   volumeName: media-music
 ---
 apiVersion: v1
@@ -76,5 +76,5 @@ spec:
   resources:
     requests:
       storage: 1Ti
-  storageClassName: smb
+  storageClassName: media
   volumeName: media-downloads
