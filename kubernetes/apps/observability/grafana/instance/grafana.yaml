@@ -49,4 +49,11 @@ spec:
             fsGroupChangePolicy: OnRootMismatch
           volumes:
             - name: grafana-data
+  httpRoute:
+    spec:
+      hostnames:
+        - grafana.winstead.io
+      parentRefs:
+        - name: envoy-internal
+          namespace: network
   disableDefaultSecurityContext: All
