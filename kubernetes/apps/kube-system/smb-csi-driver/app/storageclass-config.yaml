@@ -6,7 +6,7 @@ metadata:
 provisioner: smb.csi.k8s.io
 parameters:
   source: //nas.winstead.io/Media
-  subDir: config/${pvc.metadata.name}
+  subDir: config/$${pvc.metadata.name}
   csi.storage.k8s.io/provisioner-secret-name: smb-credentials
   csi.storage.k8s.io/provisioner-secret-namespace: kube-system
   csi.storage.k8s.io/node-stage-secret-name: smb-credentials
