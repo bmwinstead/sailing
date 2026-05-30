@@ -1,0 +1,150 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-tv
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0666
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    readOnly: false
+    volumeHandle: nas-media-tv
+    volumeAttributes:
+      source: //nas.winstead.io/Media
+      subDir: tv
+    nodeStageSecretRef:
+      name: smb-credentials
+      namespace: kube-system
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-movies
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0666
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    readOnly: false
+    volumeHandle: nas-media-movies
+    volumeAttributes:
+      source: //nas.winstead.io/Media
+      subDir: movies
+    nodeStageSecretRef:
+      name: smb-credentials
+      namespace: kube-system
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-books
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0666
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    readOnly: false
+    volumeHandle: nas-media-books
+    volumeAttributes:
+      source: //nas.winstead.io/Media
+      subDir: books
+    nodeStageSecretRef:
+      name: smb-credentials
+      namespace: kube-system
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-music
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0666
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    readOnly: false
+    volumeHandle: nas-media-music
+    volumeAttributes:
+      source: //nas.winstead.io/Media
+      subDir: music
+    nodeStageSecretRef:
+      name: smb-credentials
+      namespace: kube-system
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-downloads
+spec:
+  capacity:
+    storage: 1Ti
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: smb
+  mountOptions:
+    - dir_mode=0777
+    - file_mode=0666
+    - noperm
+    - mfsymlinks
+    - cache=strict
+    - noserverino
+    - nobrl
+  csi:
+    driver: smb.csi.k8s.io
+    readOnly: false
+    volumeHandle: nas-media-downloads
+    volumeAttributes:
+      source: //nas.winstead.io/Media
+      subDir: downloads
+    nodeStageSecretRef:
+      name: smb-credentials
+      namespace: kube-system

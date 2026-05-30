@@ -85,13 +85,10 @@ spec:
                 port: *port
     persistence:
       config:
-        existingClaim: media
+        existingClaim: sonarr
+      tv:
+        existingClaim: media-tv
         globalMounts:
-          - path: /config
-            subPath: config/sonarr
-      media:
-        existingClaim: media
-        globalMounts:
-          - path: /media
+          - path: /tv
       tmp:
         type: emptyDir

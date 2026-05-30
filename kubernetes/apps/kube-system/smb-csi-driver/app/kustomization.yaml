@@ -6,3 +6,4 @@ resources:
   - ./helmrepository.yaml
   - ./secret.sops.yaml
   - ./storageclass.yaml
+  - ./storageclass-config.yaml
