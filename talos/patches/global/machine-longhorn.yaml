@@ -1,20 +1,7 @@
 ---
 machine:
-  disks:
-    - device: /dev/disk/by-id/nvme-INTEL_SSDPEKNW020T8_BTNH90810QKW2P0C
-      partitions:
-        - mountpoint: /var/lib/longhorn
   kernel:
     modules:
       - name: iscsi_tcp
   sysctls:
     vm.nr_hugepages: "1024"
-  kubelet:
-    extraMounts:
-      - destination: /var/lib/longhorn
-        type: bind
-        source: /var/lib/longhorn
-        options:
-          - bind
-          - rshared
-          - rw
