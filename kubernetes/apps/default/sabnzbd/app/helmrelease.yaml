@@ -80,6 +80,7 @@ spec:
           gethomepage.dev/siteMonitor: "https://sabnzbd.${SECRET_DOMAIN}"
           gethomepage.dev/widget.type: sabnzbd
           gethomepage.dev/widget.url: "http://sabnzbd.default.svc.cluster.local"
+          gethomepage.dev/widget.key: "${SABNZBD__API__APIKEY}"
         hostnames:
           - "sabnzbd.${SECRET_DOMAIN}"
         parentRefs:
