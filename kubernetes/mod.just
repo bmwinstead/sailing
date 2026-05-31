@@ -14,4 +14,4 @@ reconcile:
 [doc('Edit the centralized app secrets file')]
 [group('kube')]
 edit-secrets:
-    cd {{ justfile_directory() }}/.. && SOPS_AGE_KEY_FILE=age.key sops kubernetes/apps/default/app-secrets.sops.yaml
+    cd {{ source_directory() }}/.. && SOPS_AGE_KEY_FILE=age.key sops kubernetes/apps/default/app-secrets.sops.yaml
