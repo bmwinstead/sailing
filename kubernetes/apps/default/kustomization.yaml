@@ -8,6 +8,7 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./app-secrets.sops.yaml
   - ./echo/ks.yaml
   - ./jellyfin/ks.yaml
   - ./radarr/ks.yaml

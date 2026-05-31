@@ -21,6 +21,9 @@ spec:
             env:
               DOTNET_SYSTEM_IO_DISABLEFILELOCKING: "true"
               JELLYFIN_PublishedServerUrl: "https://jellyfin.${SECRET_DOMAIN}"
+            envFrom:
+              - secretRef:
+                  name: jellyfin-secret
             probes:
               liveness:
                 enabled: true
