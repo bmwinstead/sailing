@@ -22,9 +22,9 @@ cniConfig:
 nodes:
   - hostname: "k8s-3"
     ipAddress: "10.20.0.102"
-    installDisk: "/dev/nvme0n1"
+    installDisk: "/dev/nvme1n1"
     disks:
-      - device: /dev/nvme1n1
+      - device: /dev/nvme0n1
         partitions:
           - mountpoint: /var/lib/longhorn
     machineSpec:
