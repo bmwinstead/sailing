@@ -103,7 +103,7 @@ spec:
                 port: *port
     persistence:
       config:
-        existingClaim: jellyfin
+        existingClaim: jellyfin-longhorn
       transcode:
         type: emptyDir
         globalMounts:
