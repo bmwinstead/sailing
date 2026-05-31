@@ -39,3 +39,6 @@ data:
     []
   bookmarks.yaml: |-
     []
+  docker.yaml: ""
+  custom.css: ""
+  custom.js: ""
