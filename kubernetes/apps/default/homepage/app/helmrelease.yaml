@@ -13,6 +13,9 @@ spec:
       homepage:
         annotations:
           reloader.stakater.com/auto: "true"
+        pod:
+          serviceAccountName: homepage
+          automountServiceAccountToken: true
         containers:
           app:
             image:
@@ -61,8 +64,6 @@ spec:
               limits:
                 memory: 512Mi
     defaultPodOptions:
-      serviceAccountName: homepage
-      automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
