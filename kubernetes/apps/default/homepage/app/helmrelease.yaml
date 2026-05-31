@@ -13,9 +13,8 @@ spec:
       homepage:
         annotations:
           reloader.stakater.com/auto: "true"
-        pod:
-          serviceAccountName: homepage
-          automountServiceAccountToken: true
+        serviceAccount:
+          name: homepage
         containers:
           app:
             image:
