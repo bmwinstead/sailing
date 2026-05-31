@@ -10,6 +10,7 @@ resources:
   - ./namespace.yaml
   - ./app-secrets.sops.yaml
   - ./echo/ks.yaml
+  - ./homepage/ks.yaml
   - ./jellyfin/ks.yaml
   - ./radarr/ks.yaml
   - ./sonarr/ks.yaml

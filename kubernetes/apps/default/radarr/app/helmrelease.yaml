@@ -76,6 +76,14 @@ spec:
             port: *port
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: Radarr
+          gethomepage.dev/description: Movie management
+          gethomepage.dev/group: Media
+          gethomepage.dev/icon: radarr
+          gethomepage.dev/href: "https://radarr.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "https://radarr.${SECRET_DOMAIN}"
         hostnames:
           - "radarr.${SECRET_DOMAIN}"
         parentRefs:

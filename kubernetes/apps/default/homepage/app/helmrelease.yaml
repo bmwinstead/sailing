@@ -2,52 +2,50 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: sonarr
+  name: homepage
 spec:
   chartRef:
     kind: OCIRepository
-    name: sonarr
+    name: homepage
   interval: 1h
   values:
     controllers:
-      sonarr:
+      homepage:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/home-operations/sonarr
-              tag: 4.0.17.2967@sha256:4ff5667a371e08b098858fa2457a99a5fef5f6a32640eb8567efe979d13ac9fc
+              repository: ghcr.io/gethomepage/homepage
+              tag: v1.13.1
             env:
-              SONARR__APP__INSTANCENAME: Sonarr
-              SONARR__APP__THEME: dark
-              SONARR__AUTH__METHOD: External
-              SONARR__AUTH__REQUIRED: DisabledForLocalAddresses
-              SONARR__LOG__DBENABLED: "False"
-              SONARR__LOG__LEVEL: info
-              SONARR__SERVER__PORT: &port 80
-              SONARR__UPDATE__BRANCH: develop
+              MY_POD_IP:
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.podIP
+              HOMEPAGE_ALLOWED_HOSTS: "$(MY_POD_IP):3000,homepage.${SECRET_DOMAIN}"
               TZ: America/New_York
-            envFrom:
-              - secretRef:
-                  name: sonarr-secret
             probes:
               liveness:
                 enabled: true
+                custom: true
                 spec:
-                  periodSeconds: 30
-                  timeoutSeconds: 5
-                  failureThreshold: 5
+                  httpGet:
+                    path: /api/healthcheck
+                    port: &port 3000
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
               readiness:
                 enabled: true
                 custom: true
                 spec:
                   httpGet:
-                    path: /ping
+                    path: /api/healthcheck
                     port: *port
                   periodSeconds: 10
-                  timeoutSeconds: 5
-                  failureThreshold: 5
+                  timeoutSeconds: 1
+                  failureThreshold: 3
               startup:
                 enabled: true
                 spec:
@@ -59,16 +57,17 @@ spec:
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 100m
+                cpu: 15m
               limits:
-                memory: 4Gi
+                memory: 512Mi
     defaultPodOptions:
+      serviceAccountName: homepage
+      automountServiceAccountToken: true
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
@@ -76,16 +75,8 @@ spec:
             port: *port
     route:
       app:
-        annotations:
-          gethomepage.dev/enabled: "true"
-          gethomepage.dev/name: Sonarr
-          gethomepage.dev/description: TV show management
-          gethomepage.dev/group: Media
-          gethomepage.dev/icon: sonarr
-          gethomepage.dev/href: "https://sonarr.${SECRET_DOMAIN}"
-          gethomepage.dev/siteMonitor: "https://sonarr.${SECRET_DOMAIN}"
         hostnames:
-          - "sonarr.${SECRET_DOMAIN}"
+          - "homepage.${SECRET_DOMAIN}"
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -96,14 +87,29 @@ spec:
                 port: *port
     persistence:
       config:
-        existingClaim: sonarr
-      tv:
-        existingClaim: media-tv
+        type: configMap
+        name: homepage-config
         globalMounts:
-          - path: /tv
-      downloads:
-        existingClaim: media-downloads
+          - path: /app/config/kubernetes.yaml
+            subPath: kubernetes.yaml
+            readOnly: true
+          - path: /app/config/settings.yaml
+            subPath: settings.yaml
+            readOnly: true
+          - path: /app/config/widgets.yaml
+            subPath: widgets.yaml
+            readOnly: true
+          - path: /app/config/services.yaml
+            subPath: services.yaml
+            readOnly: true
+          - path: /app/config/bookmarks.yaml
+            subPath: bookmarks.yaml
+            readOnly: true
+      logs:
+        type: emptyDir
         globalMounts:
-          - path: /downloads
+          - path: /app/config/logs
       tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp
