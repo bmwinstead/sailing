@@ -21,11 +21,7 @@ spec:
               repository: ghcr.io/gethomepage/homepage
               tag: v1.13.1
             env:
-              MY_POD_IP:
-                valueFrom:
-                  fieldRef:
-                    fieldPath: status.podIP
-              HOMEPAGE_ALLOWED_HOSTS: "$(MY_POD_IP):3000,homepage.${SECRET_DOMAIN}"
+              HOMEPAGE_ALLOWED_HOSTS: "127.0.0.1:3000,homepage.${SECRET_DOMAIN}"
               TZ: America/New_York
             probes:
               liveness:
@@ -35,6 +31,7 @@ spec:
                   httpGet:
                     path: /api/healthcheck
                     port: &port 3000
+                    host: 127.0.0.1
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
@@ -45,6 +42,7 @@ spec:
                   httpGet:
                     path: /api/healthcheck
                     port: *port
+                    host: 127.0.0.1
                   periodSeconds: 10
                   timeoutSeconds: 1
                   failureThreshold: 3
