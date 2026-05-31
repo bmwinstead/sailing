@@ -23,7 +23,7 @@ spec:
               JELLYFIN_PublishedServerUrl: "https://jellyfin.${SECRET_DOMAIN}"
             envFrom:
               - secretRef:
-                  name: jellyfin-secret
+                  name: app-secrets
             probes:
               liveness:
                 enabled: true
@@ -82,6 +82,10 @@ spec:
           gethomepage.dev/icon: jellyfin
           gethomepage.dev/href: "https://jellyfin.${SECRET_DOMAIN}"
           gethomepage.dev/siteMonitor: "https://jellyfin.${SECRET_DOMAIN}"
+          gethomepage.dev/widget.type: jellyfin
+          gethomepage.dev/widget.url: "http://jellyfin.default.svc.cluster.local:8096"
+          gethomepage.dev/widget.key: "${JELLYFIN_API_KEY}"
+          gethomepage.dev/widget.enableBlocks: "true"
         hostnames:
           - "jellyfin.${SECRET_DOMAIN}"
         parentRefs:

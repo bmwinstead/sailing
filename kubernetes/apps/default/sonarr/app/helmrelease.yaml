@@ -30,7 +30,7 @@ spec:
               TZ: America/New_York
             envFrom:
               - secretRef:
-                  name: sonarr-secret
+                  name: app-secrets
             probes:
               liveness:
                 enabled: true
@@ -84,6 +84,9 @@ spec:
           gethomepage.dev/icon: sonarr
           gethomepage.dev/href: "https://sonarr.${SECRET_DOMAIN}"
           gethomepage.dev/siteMonitor: "https://sonarr.${SECRET_DOMAIN}"
+          gethomepage.dev/widget.type: sonarr
+          gethomepage.dev/widget.url: "http://sonarr.default.svc.cluster.local"
+          gethomepage.dev/widget.key: "${SONARR__APP__APIKEY}"
         hostnames:
           - "sonarr.${SECRET_DOMAIN}"
         parentRefs:

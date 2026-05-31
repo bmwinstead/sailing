@@ -30,7 +30,7 @@ spec:
               TZ: America/New_York
             envFrom:
               - secretRef:
-                  name: radarr-secret
+                  name: app-secrets
             probes:
               liveness:
                 enabled: true
@@ -84,6 +84,9 @@ spec:
           gethomepage.dev/icon: radarr
           gethomepage.dev/href: "https://radarr.${SECRET_DOMAIN}"
           gethomepage.dev/siteMonitor: "https://radarr.${SECRET_DOMAIN}"
+          gethomepage.dev/widget.type: radarr
+          gethomepage.dev/widget.url: "http://radarr.default.svc.cluster.local"
+          gethomepage.dev/widget.key: "${RADARR__APP__APIKEY}"
         hostnames:
           - "radarr.${SECRET_DOMAIN}"
         parentRefs:
