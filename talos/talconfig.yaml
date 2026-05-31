@@ -23,10 +23,6 @@ nodes:
   - hostname: "k8s-3"
     ipAddress: "10.20.0.102"
     installDisk: /dev/disk/by-id/nvme-Inland_NVMe_SSD_256GB_IBSCMC210625600183
-    disks:
-      - device: /dev/disk/by-id/nvme-INTEL_SSDPEKNW020T8_BTNH90810QKW2P0C
-        partitions:
-          - mountpoint: /var/lib/longhorn
     machineSpec:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/e8df334dd37f5ff7d7bd95b0915b6e4b1f548d47a66b4b007a6997e268e17d56

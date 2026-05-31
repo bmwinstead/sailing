@@ -1,5 +1,9 @@
 ---
 machine:
+  disks:
+    - device: /dev/disk/by-id/nvme-INTEL_SSDPEKNW020T8_BTNH90810QKW2P0C
+      partitions:
+        - mountpoint: /var/lib/longhorn
   kernel:
     modules:
       - name: iscsi_tcp
