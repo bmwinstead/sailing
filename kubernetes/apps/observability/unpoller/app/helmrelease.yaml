@@ -14,11 +14,7 @@ spec:
   interval: 1h
   values:
     dashboards:
-      create: true
-      grafana:
-        create: false
-        selectorLabels:
-          dashboards: grafana
+      create: false
     upConfig: |-
       [poller]
           debug = false
