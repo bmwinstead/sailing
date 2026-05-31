@@ -33,8 +33,8 @@ spec:
                     path: /health
                     port: &port 8096
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
+                  timeoutSeconds: 10
+                  failureThreshold: 6
               readiness:
                 enabled: true
                 custom: true
@@ -43,13 +43,18 @@ spec:
                     path: /health
                     port: *port
                   periodSeconds: 10
-                  timeoutSeconds: 1
-                  failureThreshold: 3
+                  timeoutSeconds: 10
+                  failureThreshold: 6
               startup:
                 enabled: true
+                custom: true
                 spec:
-                  failureThreshold: 30
+                  httpGet:
+                    path: /health
+                    port: *port
                   periodSeconds: 10
+                  timeoutSeconds: 10
+                  failureThreshold: 30
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
