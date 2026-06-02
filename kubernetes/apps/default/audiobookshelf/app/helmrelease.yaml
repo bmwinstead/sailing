@@ -17,8 +17,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/advplyr/audiobookshelf
-              tag: v2.35.1
+              repository: advplyr/audiobookshelf
+              tag: "2.35.1"
             env:
               TZ: America/New_York
               PORT: &port 80
