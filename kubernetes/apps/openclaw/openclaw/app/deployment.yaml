@@ -29,7 +29,15 @@ spec:
             - "sh"
             - "-c"
           args:
-            - mkdir -p /home/node/.openclaw/workspaces && cp -rn /opt/openclaw-workspaces/. /home/node/.openclaw/workspaces/ && echo "workspaces seeded"
+            - |
+              mkdir -p /home/node/.openclaw/workspaces
+              cp -rn /opt/openclaw-workspaces/. /home/node/.openclaw/workspaces/
+              # Distribute shared team docs into each agent workspace (agents read
+              # TEAM.md/TEAM_PROTOCOL.md/GLOSSARY.md from their own dir). -n preserves edits.
+              for a in kev rex scout hawk dash dot pixel; do
+                cp -n /opt/openclaw-workspaces/shared/*.md /home/node/.openclaw/workspaces/$a/ 2>/dev/null || true
+              done
+              echo "workspaces seeded"
           volumeMounts:
             - name: state
               mountPath: /home/node/.openclaw
