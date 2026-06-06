@@ -9,6 +9,7 @@
 {
   gateway: {
     mode: "local",                  // required: self-hosted single gateway
+    bind: "lan",                    // 0.0.0.0 — required in K8s so probes/Service can reach it
     port: 18789,
     reload: { mode: "hybrid", debounceMs: 300 },
   },
