@@ -46,7 +46,7 @@ spec:
             - "sh"
             - "-c"
           args:
-            - openclaw plugins install @openclaw/discord @openclaw/openshell-sandbox
+            - openclaw plugins install @openclaw/discord && openclaw plugins install @openclaw/openshell-sandbox
           volumeMounts:
             - name: state
               mountPath: /home/node/.openclaw
