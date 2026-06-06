@@ -1,0 +1,16 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./secret.sops.yaml
+  - ./pvc.yaml
+  - ./deployment.yaml
+  - ./service.yaml
+
+# Generate the openclaw-config ConfigMap from the JSON5 file → mounted at
+# /etc/openclaw/openclaw.json (OPENCLAW_CONFIG_PATH). The content hash in the name
+# rolls the Deployment automatically whenever the config changes.
+configMapGenerator:
+  - name: openclaw-config
+    files:
+      - openclaw.json=openclaw.k8s.json5

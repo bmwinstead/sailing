@@ -1,0 +1,171 @@
+// OpenClaw config — Kubernetes variant of "Kev's Dream Team".
+// Differences from the local ../openclaw.json:
+//   * workspace paths are absolute container paths (/home/node/.openclaw/...), not ~
+//   * sandbox backend is "openshell" (Docker-out-of-Docker doesn't fit K8s)
+//   * onboarding is skipped; provider creds + Discord come from env (k8s Secret)
+//
+// Mounted read-only at /etc/openclaw/openclaw.json; the Gateway reads it via
+// OPENCLAW_CONFIG_PATH (set in deployment.yaml). Validate: openclaw doctor --fix
+{
+  gateway: {
+    port: 18789,
+    reload: { mode: "hybrid", debounceMs: 300 },
+  },
+
+  agents: {
+    defaults: {
+      workspace: "/home/node/.openclaw/workspaces/kev",
+      model: {
+        primary: "anthropic/claude-sonnet-4-6",
+        fallbacks: ["anthropic/claude-haiku-4-5"],
+      },
+      models: {
+        "anthropic/claude-opus-4-8":   { alias: "Opus" },
+        "anthropic/claude-sonnet-4-6": { alias: "Sonnet" },
+        "anthropic/claude-haiku-4-5":  { alias: "Haiku" },
+      },
+      // Sandboxing via OpenShell-managed remote environments (not local Docker).
+      sandbox: {
+        mode: "non-main",      // off | non-main | all
+        backend: "openshell",
+        scope: "session",
+        workspaceAccess: "rw",
+      },
+      subagents: {
+        maxSpawnDepth: 2,
+        maxChildrenPerAgent: 5,
+        maxConcurrent: 8,
+        runTimeoutSeconds: 900,
+      },
+    },
+
+    list: [
+      {
+        id: "kev",
+        default: true,
+        workspace: "/home/node/.openclaw/workspaces/kev",
+        model: { primary: "anthropic/claude-opus-4-8" },
+        sandbox: { mode: "off" },              // orchestrator runs in the gateway pod
+        tools: {
+          profile: "messaging",
+          alsoAllow: [
+            "sessions_spawn", "sessions_yield", "subagents",
+            "sessions_list", "sessions_history",
+          ],
+        },
+        heartbeat: {
+          every: "30m",
+          target: "last",
+          lightContext: true,
+          isolatedSession: true,
+          skipWhenBusy: true,
+          activeHours: { start: "08:00", end: "22:00", timezone: "America/New_York" },
+          prompt: "Scan MEMORY.md and open GitHub items for anything needing action. Reply HEARTBEAT_OK if nothing urgent.",
+        },
+      },
+      {
+        id: "rex",
+        workspace: "/home/node/.openclaw/workspaces/rex",
+        model: { primary: "anthropic/claude-sonnet-4-6" },
+        sandbox: { mode: "all", backend: "openshell", scope: "session", workspaceAccess: "rw" },
+        skills: ["github"],
+      },
+      {
+        id: "scout",
+        workspace: "/home/node/.openclaw/workspaces/scout",
+        model: { primary: "anthropic/claude-haiku-4-5" },
+        sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "ro" },
+        skills: ["web", "weather"],
+      },
+      {
+        id: "hawk",
+        workspace: "/home/node/.openclaw/workspaces/hawk",
+        model: { primary: "anthropic/claude-opus-4-8" },
+        sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "ro" },
+      },
+      {
+        id: "dash",
+        workspace: "/home/node/.openclaw/workspaces/dash",
+        model: { primary: "anthropic/claude-sonnet-4-6" },
+        sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
+      },
+      {
+        id: "dot",
+        workspace: "/home/node/.openclaw/workspaces/dot",
+        model: { primary: "anthropic/claude-sonnet-4-6" },
+        sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
+        skills: ["github"],
+      },
+      {
+        id: "pixel",
+        workspace: "/home/node/.openclaw/workspaces/pixel",
+        model: { primary: "anthropic/claude-sonnet-4-6" },  // vision-capable; no image gen on Anthropic
+        sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
+      },
+    ],
+  },
+
+  // OpenShell sandbox plugin → self-hosted OpenShell gateway in-cluster
+  // (deployed via cluster-template: apps/openshell, chart 0.0.42).
+  // TLS is disabled on that gateway, so the endpoint is http:// not https://.
+  plugins: {
+    entries: {
+      openshell: {
+        enabled: true,
+        config: {
+          from: "openclaw",
+          mode: "remote",                 // mirror | remote
+          command: "openshell",
+          gatewayEndpoint: "http://openshell.openshell.svc.cluster.local:8080",
+          policy: "strict",
+          remoteWorkspaceDir: "/sandbox",
+          remoteAgentWorkspaceDir: "/agent",
+          timeoutSeconds: 120,
+        },
+      },
+    },
+  },
+
+  channels: {
+    discord: {
+      enabled: true,
+      token: { source: "env", provider: "default", id: "DISCORD_BOT_TOKEN" },
+      dmPolicy: "allowlist",
+      allowFrom: ["${DISCORD_USER_ID}"],
+      groupPolicy: "allowlist",
+      intents: { messageContent: true, serverMembers: true },
+      guilds: {
+        "${DISCORD_GUILD_ID}": {
+          requireMention: true,
+          users: ["${DISCORD_USER_ID}"],
+        },
+      },
+    },
+  },
+
+  bindings: [
+    { agentId: "kev", match: { channel: "discord" } },
+  ],
+
+  session: {
+    dmScope: "per-channel-peer",
+    threadBindings: { enabled: true, idleHours: 24 },
+    reset: { mode: "daily", atHour: 4, idleMinutes: 120 },
+  },
+
+  hooks: {
+    enabled: true,
+    path: "/hooks",
+    token: "${OPENCLAW_HOOK_TOKEN}",
+    mappings: [
+      { match: { path: "github" }, action: "agent", agentId: "kev", deliver: true },
+      { match: { path: "alert" },  action: "agent", agentId: "kev", deliver: true },
+    ],
+  },
+
+  cron: {
+    enabled: true,
+    maxConcurrentRuns: 8,
+    sessionRetention: "24h",
+  },
+}

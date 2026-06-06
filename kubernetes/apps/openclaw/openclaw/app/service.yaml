@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openclaw
+  labels:
+    app: openclaw
+spec:
+  selector:
+    app: openclaw
+  ports:
+    - name: gateway
+      port: 18789
+      targetPort: gateway
+      # ClusterIP. Discord is outbound, so no inbound exposure needed. Dashboard:
+      #   kubectl -n openclaw port-forward svc/openclaw 18789:18789
+      # Add an Ingress/HTTPRoute only to receive external webhooks at /hooks/*.

@@ -1,0 +1,26 @@
+---
+# state: config-derived data, gateway identity/token, agent workspaces, stored creds.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openclaw-state
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
+---
+# auth: encryption keys for the stored creds — back this up (lose it → creds unreadable).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: openclaw-auth
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 256Mi
