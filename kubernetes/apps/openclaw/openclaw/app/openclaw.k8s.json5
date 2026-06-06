@@ -114,7 +114,8 @@
   // (deployed via cluster-template: apps/openshell, chart 0.0.42).
   // TLS is disabled on that gateway, so the endpoint is http:// not https://.
   plugins: {
-    allow: ["discord", "openshell"],   // explicit trust for the installed external plugins
+    // NOTE: don't set plugins.allow — it restricts to ONLY listed ids and drops bundled
+    // plugins (codex, etc). Empty allow = bundled load + discovered plugins auto-load.
     entries: {
       discord: { enabled: true },      // activate the @openclaw/discord channel plugin
       openshell: {
@@ -143,7 +144,9 @@
       // Privileged intents (Message Content, Server Members) are enabled in the
       // Discord Developer Portal, not here — the config schema doesn't take them.
       guilds: {
-        "${DISCORD_GUILD_ID}": {
+        // Guild (server) ID — can't be env-interpolated as a map key, so it's inline.
+        // Not secret. Verify this matches your server ID if guild replies don't work.
+        "1511202661213667300": {
           requireMention: true,
           users: ["${DISCORD_USER_ID}"],
         },
