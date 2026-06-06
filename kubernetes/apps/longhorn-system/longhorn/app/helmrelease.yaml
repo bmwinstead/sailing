@@ -18,7 +18,7 @@ spec:
       defaultReplicaCount: 1
       storageReservedPercentageForDefaultDisk: 10
     persistence:
-      defaultClass: false
+      defaultClass: true
       defaultClassReplicaCount: 1
     longhornUI:
       replicas: 1
