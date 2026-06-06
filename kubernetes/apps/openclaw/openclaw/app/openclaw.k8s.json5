@@ -139,7 +139,7 @@
       enabled: true,
       token: "${DISCORD_BOT_TOKEN}",   // env interpolation (proven to work for hooks.token)
       dmPolicy: "allowlist",
-      allowFrom: ["${DISCORD_USER_ID}"],
+      allowFrom: ["177166264496685060"],
       groupPolicy: "allowlist",
       // Privileged intents (Message Content, Server Members) are enabled in the
       // Discord Developer Portal, not here — the config schema doesn't take them.
@@ -148,7 +148,7 @@
         // Not secret. Verify this matches your server ID if guild replies don't work.
         "1511202661213667300": {
           requireMention: true,
-          users: ["${DISCORD_USER_ID}"],
+          users: ["177166264496685060"],
         },
       },
     },
