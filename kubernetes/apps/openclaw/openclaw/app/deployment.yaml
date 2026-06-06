@@ -33,6 +33,23 @@ spec:
           volumeMounts:
             - name: state
               mountPath: /home/node/.openclaw
+        # Install external plugins (Discord channel + OpenShell sandbox) into the state
+        # PVC (plugins persist under the OpenClaw home = /home/node/.openclaw). Idempotent.
+        - name: install-plugins
+          image: ghcr.io/bmwinstead/openclaw-team:sha-60613b1
+          env:
+            - name: HOME
+              value: /home/node
+            - name: OPENCLAW_SKIP_ONBOARDING
+              value: "1"
+          command:
+            - "sh"
+            - "-c"
+          args:
+            - openclaw plugins install @openclaw/discord @openclaw/openshell-sandbox
+          volumeMounts:
+            - name: state
+              mountPath: /home/node/.openclaw
       containers:
         - name: openclaw
           image: ghcr.io/bmwinstead/openclaw-team:sha-60613b1
@@ -44,9 +61,6 @@ spec:
               value: /etc/openclaw/openclaw.json
             - name: OPENCLAW_SKIP_ONBOARDING
               value: "1"
-            # Pre-install the OpenShell plugin at startup (survives the state PVC mount).
-            - name: OPENCLAW_EXTENSIONS
-              value: "@openclaw/openshell-sandbox"
           envFrom:
             - secretRef:
                 name: openclaw-secrets # all ${...} vars from the SOPS secret
