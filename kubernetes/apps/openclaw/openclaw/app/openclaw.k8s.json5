@@ -134,7 +134,7 @@
   channels: {
     discord: {
       enabled: true,
-      token: { source: "env", provider: "default", id: "DISCORD_BOT_TOKEN" },
+      token: "${DISCORD_BOT_TOKEN}",   // env interpolation (proven to work for hooks.token)
       dmPolicy: "allowlist",
       allowFrom: ["${DISCORD_USER_ID}"],
       groupPolicy: "allowlist",
