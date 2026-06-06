@@ -9,7 +9,10 @@
 {
   gateway: {
     mode: "local",                  // required: self-hosted single gateway
-    bind: "lan",                    // 0.0.0.0 — required in K8s so probes/Service can reach it
+    // bind stays "loopback" (default): no gateway auth needed. Probes hit 127.0.0.1
+    // via exec, port-forward connects to pod-localhost, Discord is outbound. Nothing
+    // needs the gateway on 0.0.0.0. (To expose via Service/Ingress later, set bind:"lan"
+    // AND gateway.auth.token.)
     port: 18789,
     reload: { mode: "hybrid", debounceMs: 300 },
   },
