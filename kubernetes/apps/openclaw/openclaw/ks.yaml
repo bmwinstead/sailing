@@ -6,10 +6,9 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/openclaw/openclaw/app
-  postBuild:
-    substituteFrom:
-      - name: cluster-secrets
-        kind: Secret
+  # No postBuild substitution: the config's ${VAR} refs (DISCORD_USER_ID, DISCORD_GUILD_ID,
+  # OPENCLAW_HOOK_TOKEN) are interpolated by OpenClaw from the pod env (envFrom secret),
+  # NOT by Flux. Flux's ${} substitution would clobber them to empty.
   prune: true
   sourceRef:
     kind: GitRepository
