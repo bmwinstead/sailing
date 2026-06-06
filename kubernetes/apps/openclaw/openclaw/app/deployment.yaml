@@ -46,7 +46,11 @@ spec:
             - "sh"
             - "-c"
           args:
-            - openclaw plugins install @openclaw/discord && openclaw plugins install @openclaw/openshell-sandbox
+            - |
+              P=/home/node/.openclaw/npm/projects
+              ls "$P" 2>/dev/null | grep -q openclaw-discord || openclaw plugins install @openclaw/discord
+              ls "$P" 2>/dev/null | grep -q openclaw-openshell || openclaw plugins install @openclaw/openshell-sandbox
+              echo "plugins ready"
           volumeMounts:
             - name: state
               mountPath: /home/node/.openclaw
