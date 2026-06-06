@@ -134,7 +134,8 @@
       dmPolicy: "allowlist",
       allowFrom: ["${DISCORD_USER_ID}"],
       groupPolicy: "allowlist",
-      intents: { messageContent: true, serverMembers: true },
+      // Privileged intents (Message Content, Server Members) are enabled in the
+      // Discord Developer Portal, not here — the config schema doesn't take them.
       guilds: {
         "${DISCORD_GUILD_ID}": {
           requireMention: true,
