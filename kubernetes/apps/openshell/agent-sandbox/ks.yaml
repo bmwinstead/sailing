@@ -1,0 +1,19 @@
+---
+# Kubernetes Agent Sandbox controller + CRDs (kubernetes-sigs/agent-sandbox).
+# Hard prerequisite for OpenShell's Kubernetes compute driver — it provisions
+# each sandbox as a Sandbox CR (sandboxes.agents.x-k8s.io). No targetNamespace:
+# the vendored manifest defines its own namespace (agent-sandbox-system) and
+# cluster-scoped resources.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: agent-sandbox
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/openshell/agent-sandbox/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  wait: true

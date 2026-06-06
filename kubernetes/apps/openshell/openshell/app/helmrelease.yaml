@@ -1,0 +1,23 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openshell
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: openshell
+  interval: 1h
+  values:
+    # Personal-cluster profile: plaintext gRPC, no mTLS/OIDC. Lock down later via
+    # server.oidc.* or by re-enabling TLS (drop disableTls/disableGatewayAuth and
+    # set pkiInitJob.enabled: true). Experimental K8s path — pinned to chart 0.0.42.
+    server:
+      disableTls: true # plaintext HTTP gRPC on :8080
+      disableGatewayAuth: true # no client-cert requirement
+      # sandboxNamespace defaults to the release namespace (openshell).
+    pkiInitJob:
+      enabled: false # no server/client cert generation needed when TLS is off
+      # Derived gRPC endpoint clients use (scheme follows disableTls):
+      #   http://openshell.openshell.svc.cluster.local:8080
+      # → set this as OpenClaw's openshell plugin gatewayEndpoint.

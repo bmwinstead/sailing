@@ -1,0 +1,8 @@
+---
+# Vendored from:
+#   https://github.com/kubernetes-sigs/agent-sandbox/releases/download/v0.4.6/manifest.yaml
+# Re-vendor on upgrade; do not hand-edit manifest.yaml.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./manifest.yaml
