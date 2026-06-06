@@ -8,6 +8,7 @@
 // OPENCLAW_CONFIG_PATH (set in deployment.yaml). Validate: openclaw doctor --fix
 {
   gateway: {
+    mode: "local",                  // required: self-hosted single gateway
     port: 18789,
     reload: { mode: "hybrid", debounceMs: 300 },
   },
