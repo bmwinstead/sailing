@@ -73,6 +73,11 @@ spec:
               value: /home/node
             - name: OPENCLAW_SKIP_ONBOARDING
               value: "1"
+            # Writable config copy (the CLI needs to read agent defs AND write config;
+            # the real /etc/openclaw mount is read-only). Credentials still land in the
+            # per-agent auth-profiles.json under the state PVC, which the gateway reads.
+            - name: OPENCLAW_CONFIG_PATH
+              value: /home/node/.openclaw/openclaw.json
           envFrom:
             - secretRef:
                 name: openclaw-secrets
@@ -81,6 +86,7 @@ spec:
             - "-c"
           args:
             - |
+              cp /etc/openclaw/openclaw.json /home/node/.openclaw/openclaw.json
               for a in kev hawk; do
                 printf '%s' "$ANTHROPIC_API_KEY" | openclaw models auth --agent "$a" paste-api-key --provider anthropic --profile-id anthropic:manual \
                   && echo "anthropic auth set for $a" || echo "WARN: anthropic auth failed for $a"
@@ -88,6 +94,9 @@ spec:
           volumeMounts:
             - name: state
               mountPath: /home/node/.openclaw
+            - name: config
+              mountPath: /etc/openclaw
+              readOnly: true
       containers:
         - name: openclaw
           image: ghcr.io/bmwinstead/openclaw-team:sha-60613b1
