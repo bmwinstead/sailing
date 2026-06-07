@@ -87,7 +87,7 @@
         workspace: "/home/node/.openclaw/workspaces/rex",
         model: { primary: "openai/gpt-5.3-codex" },
         sandbox: { mode: "all", backend: "openshell", scope: "session", workspaceAccess: "rw" },
-        skills: ["github"],
+        tools: { profile: "coding" },   // exec + MCP tools (github). Replaces the gh-CLI skill.
       },
       {
         id: "scout",
@@ -113,7 +113,7 @@
         workspace: "/home/node/.openclaw/workspaces/dot",
         model: { primary: "openai/gpt-5.4" },
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
-        skills: ["github"],
+        tools: { profile: "coding" },   // exec + MCP tools (github)
       },
       {
         id: "pixel",
