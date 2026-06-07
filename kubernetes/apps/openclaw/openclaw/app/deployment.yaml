@@ -73,6 +73,8 @@ spec:
               value: /etc/openclaw/openclaw.json
             - name: OPENCLAW_SKIP_ONBOARDING
               value: "1"
+            - name: OPENCLAW_LOG_LEVEL # TEMP: capture inbound DM peer id to lock allowlist
+              value: debug
           envFrom:
             - secretRef:
                 name: openclaw-secrets # all ${...} vars from the SOPS secret
