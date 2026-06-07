@@ -14,6 +14,15 @@
     // Persistent token for the Control UI / CLI (instead of a per-restart random one),
     // sourced from the SOPS secret. Required for bind:lan; enter it at the UI login.
     auth: { mode: "token", token: "${OPENCLAW_GATEWAY_TOKEN}" },
+    // Control UI origin allowlist (required for bind:lan). Include the HTTPRoute host
+    // plus localhost for port-forward access.
+    controlUi: {
+      allowedOrigins: [
+        "https://openclaw.winstead.io",
+        "http://localhost:18789",
+        "http://127.0.0.1:18789",
+      ],
+    },
     reload: { mode: "hybrid", debounceMs: 300 },
   },
 
