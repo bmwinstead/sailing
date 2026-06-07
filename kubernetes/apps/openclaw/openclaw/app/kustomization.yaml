@@ -6,6 +6,7 @@ resources:
   - ./pvc.yaml
   - ./deployment.yaml
   - ./service.yaml
+  - ./httproute.yaml
 
 # Generate the openclaw-config ConfigMap from the JSON5 file → mounted at
 # /etc/openclaw/openclaw.json (OPENCLAW_CONFIG_PATH). The content hash in the name

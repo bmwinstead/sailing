@@ -9,11 +9,10 @@
 {
   gateway: {
     mode: "local",                  // required: self-hosted single gateway
-    // bind stays "loopback" (default). Probes hit 127.0.0.1 via exec, port-forward
-    // connects to pod-localhost, Discord is outbound. (To expose via Ingress, set bind:"lan".)
+    bind: "lan",                    // 0.0.0.0 — needed so the Service/HTTPRoute can reach it
     port: 18789,
     // Persistent token for the Control UI / CLI (instead of a per-restart random one),
-    // sourced from the SOPS secret. Use it when prompted at http://127.0.0.1:18789.
+    // sourced from the SOPS secret. Required for bind:lan; enter it at the UI login.
     auth: { mode: "token", token: "${OPENCLAW_GATEWAY_TOKEN}" },
     reload: { mode: "hybrid", debounceMs: 300 },
   },
