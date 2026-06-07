@@ -138,8 +138,8 @@
     discord: {
       enabled: true,
       token: "${DISCORD_BOT_TOKEN}",   // env interpolation (proven to work for hooks.token)
-      dmPolicy: "allowlist",
-      allowFrom: ["discord:177166264496685060"],   // channel-prefixed peer id (bare id didn't match)
+      dmPolicy: "open",                // TEMP: capture real sender id from debug logs, then lock
+      allowFrom: ["*"],
       groupPolicy: "allowlist",
       // Privileged intents (Message Content, Server Members) are enabled in the
       // Discord Developer Portal, not here — the config schema doesn't take them.
