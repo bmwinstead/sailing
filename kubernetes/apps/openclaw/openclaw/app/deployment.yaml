@@ -62,6 +62,32 @@ spec:
           volumeMounts:
             - name: state
               mountPath: /home/node/.openclaw
+        # Named agents (kev/hawk) need a per-agent anthropic auth profile — env-based auth
+        # only auto-resolves the default provider (openai). Paste the key from the secret
+        # into each agent's auth store on the PVC. (Don't set OPENCLAW_CONFIG_PATH here so
+        # it writes to the PVC config, not the read-only mount.)
+        - name: configure-anthropic-auth
+          image: ghcr.io/bmwinstead/openclaw-team:sha-60613b1
+          env:
+            - name: HOME
+              value: /home/node
+            - name: OPENCLAW_SKIP_ONBOARDING
+              value: "1"
+          envFrom:
+            - secretRef:
+                name: openclaw-secrets
+          command:
+            - "sh"
+            - "-c"
+          args:
+            - |
+              for a in kev hawk; do
+                printf '%s' "$ANTHROPIC_API_KEY" | openclaw models auth --agent "$a" paste-api-key --provider anthropic --profile-id anthropic:manual \
+                  && echo "anthropic auth set for $a" || echo "WARN: anthropic auth failed for $a"
+              done
+          volumeMounts:
+            - name: state
+              mountPath: /home/node/.openclaw
       containers:
         - name: openclaw
           image: ghcr.io/bmwinstead/openclaw-team:sha-60613b1
