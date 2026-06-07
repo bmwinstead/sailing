@@ -42,6 +42,10 @@
         maxChildrenPerAgent: 5,
         maxConcurrent: 8,
         runTimeoutSeconds: 900,
+        // Let Kev spawn the specialists as sub-agents (default is requester-only, which
+        // made "Rex" inherit Kev's messaging profile = no exec). Each targeted agent now
+        // runs with ITS OWN tools + sandbox (Rex gets exec + openshell).
+        allowAgents: ["kev", "rex", "scout", "hawk", "dash", "dot", "pixel"],
       },
     },
 
