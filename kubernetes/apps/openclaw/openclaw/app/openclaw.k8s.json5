@@ -28,7 +28,7 @@
         "anthropic/claude-opus-4-8": { alias: "Opus" },   // orchestrator + security (tool-use reliable)
         "openai/gpt-5.4":            { alias: "GPT5" },
         "openai/gpt-5.4-mini":       { alias: "Mini" },
-        "openai/gpt-5.2-codex":      { alias: "Codex" },
+        "openai/gpt-5.3-codex":      { alias: "Codex" },
       },
       // Sandboxing via OpenShell-managed remote environments (not local Docker).
       sandbox: {
@@ -76,7 +76,7 @@
       {
         id: "rex",
         workspace: "/home/node/.openclaw/workspaces/rex",
-        model: { primary: "openai/gpt-5.2-codex" },
+        model: { primary: "openai/gpt-5.3-codex" },
         sandbox: { mode: "all", backend: "openshell", scope: "session", workspaceAccess: "rw" },
         skills: ["github"],
       },
