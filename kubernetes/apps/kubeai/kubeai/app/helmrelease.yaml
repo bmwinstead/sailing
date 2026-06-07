@@ -12,4 +12,14 @@ spec:
         kind: HelmRepository
         name: kubeai
   interval: 1h
-  values: {}
+  values:
+    secrets:
+      huggingface:
+        create: false
+        name: kubeai-huggingface-secret
+
+    resourceProfiles:
+      nvidia-gpu-rtx3090-24gb:
+        nodeSelector:
+          nvidia.com/gpu.family: "ampere"
+          nvidia.com/gpu.memory: "24576"
