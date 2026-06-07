@@ -145,8 +145,8 @@
       // Discord Developer Portal, not here — the config schema doesn't take them.
       guilds: {
         // Guild (server) ID — can't be env-interpolated as a map key, so it's inline.
-        // Not secret. Verify this matches your server ID if guild replies don't work.
-        "1511202661213667300": {
+        // Quoted to avoid 64-bit precision rounding.
+        "1511202661213667399": {
           requireMention: true,
           users: ["177166264496685056"],
         },
