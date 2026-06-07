@@ -132,6 +132,7 @@
     // plugins (codex, etc). Empty allow = bundled load + discovered plugins auto-load.
     entries: {
       discord: { enabled: true },      // activate the @openclaw/discord channel plugin
+      workboard: { enabled: true },    // Control UI workboard view
       openshell: {
         enabled: true,
         config: {
