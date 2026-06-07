@@ -150,13 +150,14 @@
   },
 
   // External MCP servers — typed tools exposed to agents (coding/messaging profiles).
-  // GitHub via the hosted server with OAuth (one-time `openclaw mcp login github`).
+  // GitHub hosted MCP via PAT header. (OAuth isn't usable: OpenClaw's MCP OAuth needs
+  // dynamic client registration, which GitHub's auth server doesn't support.)
   mcp: {
     servers: {
       github: {
         url: "https://api.githubcopilot.com/mcp/",
         transport: "streamable-http",
-        auth: "oauth",
+        headers: { Authorization: "Bearer ${GITHUB_TOKEN}" },
       },
     },
   },
