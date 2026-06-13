@@ -20,6 +20,10 @@ spec:
 
     resourceProfiles:
       nvidia-gpu-rtx3090-24gb:
+        limits:
+          nvidia.com/gpu: "1"
+        requests:
+          nvidia.com/gpu: "1"
         nodeSelector:
           nvidia.com/gpu.family: "ampere"
           nvidia.com/gpu.memory: "24576"
