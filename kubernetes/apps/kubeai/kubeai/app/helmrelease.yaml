@@ -13,6 +13,13 @@ spec:
         name: kubeai
   interval: 1h
   values:
+    # Scrape vLLM's /metrics into the cluster's kube-prometheus-stack. Prometheus
+    # watches all namespaces with open selectors, so no extra labels are needed.
+    metrics:
+      prometheusOperator:
+        vLLMPodMonitor:
+          enabled: true
+
     secrets:
       huggingface:
         create: false

@@ -8,3 +8,4 @@ resources:
   - ./mutatingadmissionpolicy.yaml
   - ./servicemonitor.yaml
   - ./dashboard.yaml
+  - ./ai-dashboards.yaml
