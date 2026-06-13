@@ -18,10 +18,13 @@ spec:
   minReplicas: 1
   maxReplicas: 1
   args:
-    # ~15 GB AWQ weights leave ~6 GB for KV — conservative context to avoid OOM at
-    # startup (raise if it fits comfortably).
-    - --max-model-len=16384
-    - --gpu-memory-utilization=0.92
+    # The AWQ weights are ~19 GB (some layers kept higher precision), so this 27B barely
+    # fits a 24 GB card. --enforce-eager frees the CUDA-graph memory reservation for the
+    # KV cache; small context + high util make the remainder fit. Tradeoff: eager mode is
+    # slower, and KV headroom is tight (low concurrency).
+    - --enforce-eager
+    - --max-model-len=8192
+    - --gpu-memory-utilization=0.95
     # Tool calling for OpenClaw agents (Qwen ships a tool-aware chat template, so no
     # --chat-template needed). reasoning-parser keeps <think> output out of content.
     - --enable-auto-tool-choice
