@@ -20,8 +20,9 @@ spec:
   image: vllm/vllm-openai:nightly-6fbfdd183145443274df49c09c46cd13ea27af5f
   # Pins to the RTX 3090 node via the HelmRelease resourceProfile nodeSelector.
   resourceProfile: nvidia-gpu-rtx3090-24gb:1
-  # Single dedicated GPU: keep one replica warm rather than scaling from zero.
-  minReplicas: 1
+  # Parked: single GPU is in use by Qwen. minReplicas:0 frees the GPU (KubeAI scales
+  # this to zero). Flip back to 1 (and Qwen to 0) to make Gemma the active model again.
+  minReplicas: 0
   maxReplicas: 1
   args:
     # ~8 GB weights leaves ample 24 GB headroom for a large KV cache.

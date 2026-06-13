@@ -31,7 +31,7 @@
       workspace: "/home/node/.openclaw/workspaces/kev",
       model: {
         // All agents switched to the local self-hosted model (one GPU, shared by all).
-        primary: "kubeai/gemma-4-12b-it",
+        primary: "kubeai/qwen3-6-27b",
         fallbacks: [],
       },
       models: {
@@ -39,7 +39,8 @@
         "openai/gpt-5.4":            { alias: "GPT5" },
         "openai/gpt-5.4-mini":       { alias: "Mini" },
         "openai/gpt-5.3-codex":      { alias: "Codex" },
-        "kubeai/gemma-4-12b-it":     { alias: "Gemma" },  // self-hosted local model (RTX 3090, switch with /Gemma)
+        "kubeai/gemma-4-12b-it":     { alias: "Gemma" },  // parked local model (scaled to 0)
+        "kubeai/qwen3-6-27b":        { alias: "Qwen" },   // active local model (RTX 3090, switch with /Qwen)
       },
       // Sandboxing via OpenShell-managed remote environments (not local Docker).
       sandbox: {
@@ -65,7 +66,7 @@
         id: "kev",
         default: true,
         workspace: "/home/node/.openclaw/workspaces/kev",
-        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was Opus orchestrator)
+        model: { primary: "kubeai/qwen3-6-27b" },   // local (was Opus orchestrator)
         sandbox: { mode: "off" },              // orchestrator runs in the gateway pod
         tools: {
           profile: "messaging",
@@ -87,40 +88,40 @@
       {
         id: "rex",
         workspace: "/home/node/.openclaw/workspaces/rex",
-        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.3-codex)
+        model: { primary: "kubeai/qwen3-6-27b" },   // local (was gpt-5.3-codex)
         sandbox: { mode: "all", backend: "openshell", scope: "session", workspaceAccess: "rw" },
         tools: { profile: "coding" },   // exec + MCP tools (github). Replaces the gh-CLI skill.
       },
       {
         id: "scout",
         workspace: "/home/node/.openclaw/workspaces/scout",
-        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.4-mini)
+        model: { primary: "kubeai/qwen3-6-27b" },   // local (was gpt-5.4-mini)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "ro" },
         skills: ["web", "weather"],
       },
       {
         id: "hawk",
         workspace: "/home/node/.openclaw/workspaces/hawk",
-        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was Opus security)
+        model: { primary: "kubeai/qwen3-6-27b" },   // local (was Opus security)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "ro" },
       },
       {
         id: "dash",
         workspace: "/home/node/.openclaw/workspaces/dash",
-        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.4)
+        model: { primary: "kubeai/qwen3-6-27b" },   // local (was gpt-5.4)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
       },
       {
         id: "dot",
         workspace: "/home/node/.openclaw/workspaces/dot",
-        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.4)
+        model: { primary: "kubeai/qwen3-6-27b" },   // local (was gpt-5.4)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
         tools: { profile: "coding" },   // exec + MCP tools (github)
       },
       {
         id: "pixel",
         workspace: "/home/node/.openclaw/workspaces/pixel",
-        model: { primary: "kubeai/gemma-4-12b-it" },  // local (was gpt-5.4); NOTE: served text-only, Pixel loses vision
+        model: { primary: "kubeai/qwen3-6-27b" },  // local (was gpt-5.4); NOTE: served text-only, Pixel loses vision
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
       },
     ],
@@ -144,6 +145,15 @@
             input: ["text"],
             cost: { input: 0, output: 0 },
             contextWindow: 32768,        // matches vLLM --max-model-len
+            maxTokens: 8192,
+          },
+          {
+            id: "qwen3-6-27b",           // matches KubeAI Model served name
+            name: "Qwen3.6 27B (local, RTX 3090)",
+            reasoning: true,             // thinking model; vLLM reasoning-parser splits it out
+            input: ["text"],
+            cost: { input: 0, output: 0 },
+            contextWindow: 16384,        // matches vLLM --max-model-len
             maxTokens: 8192,
           },
         ],

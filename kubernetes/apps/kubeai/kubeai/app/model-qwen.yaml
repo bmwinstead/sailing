@@ -1,0 +1,29 @@
+---
+apiVersion: kubeai.org/v1
+kind: Model
+metadata:
+  name: qwen3-6-27b
+  namespace: kubeai
+spec:
+  features:
+    - TextGeneration
+  owner: qwen
+  # Community AWQ-INT4 quant (~15 GB) — Apache 2.0, ungated. Fits the 24 GB 3090
+  # with room for KV cache.
+  url: hf://cyankiwi/Qwen3.6-27B-AWQ-INT4
+  engine: VLLM
+  # Qwen3.6 is supported in stable vLLM (>=0.19), so no nightly needed here.
+  image: vllm/vllm-openai:v0.22.1
+  resourceProfile: nvidia-gpu-rtx3090-24gb:1
+  minReplicas: 1
+  maxReplicas: 1
+  args:
+    # ~15 GB AWQ weights leave ~6 GB for KV — conservative context to avoid OOM at
+    # startup (raise if it fits comfortably).
+    - --max-model-len=16384
+    - --gpu-memory-utilization=0.92
+    # Tool calling for OpenClaw agents (Qwen ships a tool-aware chat template, so no
+    # --chat-template needed). reasoning-parser keeps <think> output out of content.
+    - --enable-auto-tool-choice
+    - --tool-call-parser=qwen3_coder
+    - --reasoning-parser=qwen3

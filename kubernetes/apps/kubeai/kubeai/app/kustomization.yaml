@@ -6,3 +6,4 @@ resources:
   - ./helmrepository.yaml
   - ./secret.sops.yaml
   - ./model.yaml
+  - ./model-qwen.yaml
