@@ -2,31 +2,26 @@
 apiVersion: kubeai.org/v1
 kind: Model
 metadata:
-  name: qwen3-6-27b
+  name: qwen3-14b
   namespace: kubeai
 spec:
   features:
     - TextGeneration
   owner: qwen
-  # Community AWQ-INT4 quant (~15 GB) — Apache 2.0, ungated. Fits the 24 GB 3090
-  # with room for KV cache.
-  url: hf://cyankiwi/Qwen3.6-27B-AWQ-INT4
+  # Official AWQ-INT4 (~9 GB). Qwen3.6 has no 14B (smallest is 27B), so this is the
+  # prior-gen Qwen3-14B — fits the 24 GB 3090 with plenty of headroom, so it runs at
+  # full performance (CUDA graphs, long context) unlike the cramped 27B.
+  url: hf://Qwen/Qwen3-14B-AWQ
   engine: VLLM
-  # Qwen3.6 is supported in stable vLLM (>=0.19), so no nightly needed here.
   image: vllm/vllm-openai:v0.22.1
   resourceProfile: nvidia-gpu-rtx3090-24gb:1
   minReplicas: 1
   maxReplicas: 1
   args:
-    # The AWQ weights are ~19 GB (some layers kept higher precision), so this 27B barely
-    # fits a 24 GB card. --enforce-eager frees the CUDA-graph memory reservation for the
-    # KV cache; small context + high util make the remainder fit. Tradeoff: eager mode is
-    # slower, and KV headroom is tight (low concurrency).
-    - --enforce-eager
-    - --max-model-len=8192
-    - --gpu-memory-utilization=0.95
-    # Tool calling for OpenClaw agents (Qwen ships a tool-aware chat template, so no
-    # --chat-template needed). reasoning-parser keeps <think> output out of content.
+    - --max-model-len=32768
+    - --gpu-memory-utilization=0.90
+    # Tool calling for OpenClaw agents. Qwen3 dense uses the hermes parser;
+    # reasoning-parser keeps <think> output out of content.
     - --enable-auto-tool-choice
-    - --tool-call-parser=qwen3_coder
+    - --tool-call-parser=hermes
     - --reasoning-parser=qwen3
