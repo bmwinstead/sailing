@@ -1,0 +1,26 @@
+---
+apiVersion: kubeai.org/v1
+kind: Model
+metadata:
+  name: gemma-4-12b-it
+  namespace: kubeai
+spec:
+  features:
+    - TextGeneration
+  owner: google
+  # Google's official QAT w4a16 compressed-tensors checkpoint (~8 GB).
+  # vLLM auto-detects the quantization from the checkpoint — no --quantization flag.
+  url: hf://google/gemma-4-12B-it-qat-w4a16-ct
+  engine: VLLM
+  # KubeAI v0.23.2 bundles a vLLM too old for the Gemma 4 architecture.
+  # Pin the latest stable vLLM, which has Gemma 4 support.
+  image: vllm/vllm-openai:v0.22.1
+  # Pins to the RTX 3090 node via the HelmRelease resourceProfile nodeSelector.
+  resourceProfile: nvidia-gpu-rtx3090-24gb:1
+  # Single dedicated GPU: keep one replica warm rather than scaling from zero.
+  minReplicas: 1
+  maxReplicas: 1
+  args:
+    # ~8 GB weights leaves ample 24 GB headroom for a large KV cache.
+    - --max-model-len=32768
+    - --gpu-memory-utilization=0.90
