@@ -12,9 +12,12 @@ spec:
   # vLLM auto-detects the quantization from the checkpoint — no --quantization flag.
   url: hf://google/gemma-4-12B-it-qat-w4a16-ct
   engine: VLLM
-  # KubeAI v0.23.2 bundles a vLLM too old for the Gemma 4 architecture.
-  # Pin the latest stable vLLM, which has Gemma 4 support.
-  image: vllm/vllm-openai:v0.22.1
+  # Stable vLLM (v0.22.1) lacks a native Gemma 4 kernel and falls back to the
+  # Transformers backend, which mis-lays-out the w4a16 weights and crashes the
+  # Marlin GEMM kernel ("Shape mismatch ... size_k=8192"). The native gemma4
+  # kernel only exists in nightly, so pin a specific nightly commit build
+  # (reproducible — avoids the moving :nightly tag silently changing).
+  image: vllm/vllm-openai:nightly-6fbfdd183145443274df49c09c46cd13ea27af5f
   # Pins to the RTX 3090 node via the HelmRelease resourceProfile nodeSelector.
   resourceProfile: nvidia-gpu-rtx3090-24gb:1
   # Single dedicated GPU: keep one replica warm rather than scaling from zero.
