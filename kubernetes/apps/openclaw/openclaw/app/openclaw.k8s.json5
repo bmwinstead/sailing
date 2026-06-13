@@ -38,6 +38,7 @@
         "openai/gpt-5.4":            { alias: "GPT5" },
         "openai/gpt-5.4-mini":       { alias: "Mini" },
         "openai/gpt-5.3-codex":      { alias: "Codex" },
+        "kubeai/gemma-4-12b-it":     { alias: "Gemma" },  // self-hosted local model (RTX 3090, switch with /Gemma)
       },
       // Sandboxing via OpenShell-managed remote environments (not local Docker).
       sandbox: {
@@ -122,6 +123,31 @@
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
       },
     ],
+  },
+
+  // Custom model providers. KubeAI serves an OpenAI-compatible API in-cluster, so the
+  // gateway reaches it over cluster DNS — no auth, no ingress. Referenced as
+  // "kubeai/gemma-4-12b-it" (aliased /Gemma in agents.defaults.models above).
+  models: {
+    providers: {
+      kubeai: {
+        baseUrl: "http://kubeai.kubeai.svc.cluster.local/openai/v1",
+        apiKey: "not-needed",            // KubeAI/vLLM run without auth inside the cluster
+        api: "openai-completions",       // self-hosted /v1/chat/completions backend
+        timeoutSeconds: 300,
+        models: [
+          {
+            id: "gemma-4-12b-it",        // matches KubeAI Model served name
+            name: "Gemma 4 12B (local, RTX 3090)",
+            reasoning: false,
+            input: ["text"],
+            cost: { input: 0, output: 0 },
+            contextWindow: 32768,        // matches vLLM --max-model-len
+            maxTokens: 8192,
+          },
+        ],
+      },
+    },
   },
 
   // OpenShell sandbox plugin → self-hosted OpenShell gateway in-cluster
