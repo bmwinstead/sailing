@@ -30,8 +30,9 @@
     defaults: {
       workspace: "/home/node/.openclaw/workspaces/kev",
       model: {
-        primary: "openai/gpt-5.4",
-        fallbacks: ["openai/gpt-5.4-mini"],
+        // All agents switched to the local self-hosted model (one GPU, shared by all).
+        primary: "kubeai/gemma-4-12b-it",
+        fallbacks: [],
       },
       models: {
         "anthropic/claude-opus-4-8": { alias: "Opus" },   // orchestrator + security (tool-use reliable)
@@ -64,7 +65,7 @@
         id: "kev",
         default: true,
         workspace: "/home/node/.openclaw/workspaces/kev",
-        model: { primary: "anthropic/claude-opus-4-8" },   // Opus: reliable multi-step delegation
+        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was Opus orchestrator)
         sandbox: { mode: "off" },              // orchestrator runs in the gateway pod
         tools: {
           profile: "messaging",
@@ -86,40 +87,40 @@
       {
         id: "rex",
         workspace: "/home/node/.openclaw/workspaces/rex",
-        model: { primary: "openai/gpt-5.3-codex" },
+        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.3-codex)
         sandbox: { mode: "all", backend: "openshell", scope: "session", workspaceAccess: "rw" },
         tools: { profile: "coding" },   // exec + MCP tools (github). Replaces the gh-CLI skill.
       },
       {
         id: "scout",
         workspace: "/home/node/.openclaw/workspaces/scout",
-        model: { primary: "openai/gpt-5.4-mini" },
+        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.4-mini)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "ro" },
         skills: ["web", "weather"],
       },
       {
         id: "hawk",
         workspace: "/home/node/.openclaw/workspaces/hawk",
-        model: { primary: "anthropic/claude-opus-4-8" },   // Opus: security/QA reasoning
+        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was Opus security)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "ro" },
       },
       {
         id: "dash",
         workspace: "/home/node/.openclaw/workspaces/dash",
-        model: { primary: "openai/gpt-5.4" },
+        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.4)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
       },
       {
         id: "dot",
         workspace: "/home/node/.openclaw/workspaces/dot",
-        model: { primary: "openai/gpt-5.4" },
+        model: { primary: "kubeai/gemma-4-12b-it" },   // local (was gpt-5.4)
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
         tools: { profile: "coding" },   // exec + MCP tools (github)
       },
       {
         id: "pixel",
         workspace: "/home/node/.openclaw/workspaces/pixel",
-        model: { primary: "openai/gpt-5.4" },  // vision-capable; no image gen configured
+        model: { primary: "kubeai/gemma-4-12b-it" },  // local (was gpt-5.4); NOTE: served text-only, Pixel loses vision
         sandbox: { mode: "non-main", backend: "openshell", workspaceAccess: "rw" },
       },
     ],
