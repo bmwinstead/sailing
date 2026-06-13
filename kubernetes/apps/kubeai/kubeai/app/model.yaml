@@ -27,3 +27,9 @@ spec:
     # ~8 GB weights leaves ample 24 GB headroom for a large KV cache.
     - --max-model-len=32768
     - --gpu-memory-utilization=0.90
+    # Tool/function calling — OpenClaw agents always send a `tools` array, which
+    # vLLM rejects with 400 unless a tool-call parser is enabled. Gemma 4 ships a
+    # dedicated parser + chat template (the template is baked into the container).
+    - --enable-auto-tool-choice
+    - --tool-call-parser=gemma4
+    - --chat-template=/vllm-workspace/examples/tool_chat_template_gemma4.jinja
