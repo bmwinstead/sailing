@@ -27,3 +27,9 @@ spec:
         nodeSelector:
           nvidia.com/gpu.family: "ampere"
           nvidia.com/gpu.memory: "24576"
+        # pop-os is tainted nvidia.com/gpu=present:NoSchedule (dedicated GPU node, no
+        # Longhorn storage) to keep stateful workloads off it. GPU models must tolerate it.
+        tolerations:
+          - key: nvidia.com/gpu
+            operator: Exists
+            effect: NoSchedule
