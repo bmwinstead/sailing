@@ -23,7 +23,8 @@ spec:
     # the 24 GB card. Tradeoff: YaRN slightly dulls short-context quality, and a full
     # 128K request monopolizes the KV pool (low concurrency while one is in flight).
     - --max-model-len=131072
-    - '--rope-scaling={"rope_type":"yarn","factor":4.0,"original_max_position_embeddings":32768}'
+    # YaRN rope scaling via --hf-overrides (vLLM dropped the standalone --rope-scaling flag).
+    - '--hf-overrides={"rope_scaling":{"rope_type":"yarn","factor":4.0,"original_max_position_embeddings":32768}}'
     - --kv-cache-dtype=fp8
     - --gpu-memory-utilization=0.95
     # Tool calling for OpenClaw agents. Qwen3 dense uses the hermes parser;
