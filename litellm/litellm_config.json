@@ -1,0 +1,1 @@
+{"model": "gpt-3.5-turbo", "routing": {"default": "openai/gpt-3.5-turbo", "fallback": "anthropic/claude-3.5"}, "observability": {"enabled": true, "log_level": "INFO", "metrics": {"prometheus": true, "datadog": false}}}
