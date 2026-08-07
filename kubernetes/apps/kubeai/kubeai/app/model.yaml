@@ -23,7 +23,7 @@ spec:
   # Parked: single GPU is in use by Qwen. minReplicas:0 frees the GPU (KubeAI scales
   # this to zero). Flip back to 1 (and Qwen to 0) to make Gemma the active model again.
   minReplicas: 0
-  maxReplicas: 1
+  maxReplicas: 0
   args:
     # ~8 GB weights leaves ample 24 GB headroom for a large KV cache.
     - --max-model-len=32768
