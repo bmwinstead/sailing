@@ -7,6 +7,11 @@ spec:
   chartRef:
     kind: OCIRepository
     name: renovate-operator
+  # NOTE: this only configures the operator deployment itself. Renovate
+  # needs a GitHub App credential to actually run jobs — see
+  # app/secret.sops.yaml.example and app/renovatejob.yaml.example. Neither
+  # exists yet; this HelmRelease installs cleanly but Renovate won't run
+  # anything until both are created.
   interval: 1h
   values:
     replicaCount: 1
@@ -16,9 +21,3 @@ spec:
         memory: 128Mi
       limits:
         memory: 512Mi
-        # NOTE: this only configures the operator deployment itself.
-        # Renovate needs a GitHub credential to actually run jobs — see
-        # app/secret.sops.yaml.example and the PR description for the
-        # RenovateJob CR (spec.secretRef) that references it. That secret
-        # does not exist yet; this HelmRelease will install cleanly but
-        # Renovate won't run anything until it's created.
