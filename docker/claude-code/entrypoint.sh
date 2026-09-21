@@ -38,6 +38,13 @@ if [ -f "$GH_APP_KEY_SRC" ] && [ -n "${GH_APP_ID:-}" ] && [ -n "${GH_APP_PRIVATE
   mkdir -p "$(dirname "$GH_APP_PRIVATE_KEY_PATH")"
   install -m 600 "$GH_APP_KEY_SRC" "$GH_APP_PRIVATE_KEY_PATH"
   gh app-auth gitconfig --sync --auto >/dev/null
+
+  # Attribute commits made from here to the bot, not whoever's logged into
+  # `claude`, so `git log` doesn't misrepresent autonomous commits as
+  # authored by a human. Format is GitHub's standard noreply address for
+  # bot accounts: {user-id}+{login}@users.noreply.github.com.
+  git config --global user.name "${GH_APP_BOT_NAME:-atmophytes[bot]}"
+  git config --global user.email "${GH_APP_BOT_EMAIL:-331837616+atmophytes[bot]@users.noreply.github.com}"
 fi
 
 exec "$@"
