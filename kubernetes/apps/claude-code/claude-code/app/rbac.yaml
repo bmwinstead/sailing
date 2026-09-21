@@ -1,0 +1,127 @@
+---
+# Read-only cluster access for troubleshooting from the devbox. Deliberately
+# excludes Secrets (even get/list would leak credentials this pod shouldn't
+# need) and every write/exec verb — actual changes to the cluster go through
+# git + Flux, not this ServiceAccount.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-code
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-code-readonly
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - services
+      - endpoints
+      - configmaps
+      - events
+      - namespaces
+      - nodes
+      - persistentvolumes
+      - persistentvolumeclaims
+      - replicationcontrollers
+      - resourcequotas
+      - serviceaccounts
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - ""
+    resources:
+      - "pods/log"
+    verbs:
+      - "get"
+      - "list"
+  - apiGroups:
+      - "apps"
+    resources:
+      - "deployments"
+      - "replicasets"
+      - "statefulsets"
+      - "daemonsets"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "batch"
+    resources:
+      - "jobs"
+      - "cronjobs"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "networking.k8s.io"
+    resources:
+      - "ingresses"
+      - "networkpolicies"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "gateway.networking.k8s.io"
+    resources:
+      - "gateways"
+      - "httproutes"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "storage.k8s.io"
+    resources:
+      - "storageclasses"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "kustomize.toolkit.fluxcd.io"
+    resources:
+      - "kustomizations"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "helm.toolkit.fluxcd.io"
+    resources:
+      - "helmreleases"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+  - apiGroups:
+      - "source.toolkit.fluxcd.io"
+    resources:
+      - "gitrepositories"
+      - "ocirepositories"
+      - "helmrepositories"
+      - "helmcharts"
+    verbs:
+      - "get"
+      - "list"
+      - "watch"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-code-readonly
+subjects:
+  - kind: ServiceAccount
+    name: claude-code
+    namespace: claude-code
+roleRef:
+  kind: ClusterRole
+  name: claude-code-readonly
+  apiGroup: rbac.authorization.k8s.io

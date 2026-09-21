@@ -1,0 +1,68 @@
+---
+# An idle devbox, not a service — connect with:
+#   kubectl --kubeconfig=kubeconfig exec -it -n claude-code deploy/claude-code -- bash
+# First-time setup (persists on the home PVC, survives restarts):
+#   claude setup-token   (or `claude login`)
+#   gh app-auth setup --app-id <id> --key-file /home/node/.github-app/private-key.pem \
+#     --patterns "github.com/bmwinstead/*"
+#   gh app-auth gitconfig --sync
+# See app/secret-github-app.sops.yaml.example for creating that key file.
+# talosctl is already configured read-only (os:reader) via the mounted
+# claude-code-talosconfig secret at /home/node/.talos/config.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: claude-code
+  labels:
+    app: claude-code
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # RWO PVC can't be held by two pods during rollout
+  selector:
+    matchLabels:
+      app: claude-code
+  template:
+    metadata:
+      labels:
+        app: claude-code
+    spec:
+      serviceAccountName: claude-code
+      automountServiceAccountToken: true
+      securityContext:
+        runAsUser: 1000 # `node` user in the image
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: claude-code
+          image: ghcr.io/bmwinstead/claude-code-devbox:latest
+          env:
+            - name: HOME
+              value: /home/node
+          volumeMounts:
+            - name: home
+              mountPath: /home/node
+            - name: talosconfig
+              mountPath: /home/node/.talos
+              readOnly: true
+            - name: github-app
+              mountPath: /home/node/.github-app
+              readOnly: true
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: claude-code-home
+        - name: talosconfig
+          secret:
+            secretName: claude-code-talosconfig
+        - name: github-app
+          secret:
+            secretName: claude-code-github-app
+            optional: true # not created until you follow secret-github-app.sops.yaml.example

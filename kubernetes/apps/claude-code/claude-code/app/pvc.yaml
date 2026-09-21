@@ -1,0 +1,14 @@
+---
+# Persistent $HOME: `claude login` / `gh auth login` credentials, shell
+# history, and any repo checkouts survive pod restarts/reschedules.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: claude-code-home
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
