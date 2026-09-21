@@ -27,3 +27,16 @@ spec:
     appIdSecretKey: APP_ID
     installationIdSecretKey: INSTALL_ID
     pemSecretKey: PEM
+  # Instant response to PR rebase-checkbox / Dependency Dashboard checkbox
+  # clicks instead of waiting for the next `schedule` run. Requires the
+  # GitHub App's Webhook section to be configured (Active, Payload URL
+  # https://renovate-webhook.<your domain>/webhook/v1/github, same secret as
+  # secret-webhook-token.sops.yaml.example, subscribed to Pull request +
+  # Issues events) — see that file for the exact steps.
+  webhook:
+    enabled: true
+    authentication:
+      enabled: true
+      secretRef:
+        name: renovate-webhook-token
+        key: token
