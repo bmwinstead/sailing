@@ -16,4 +16,8 @@ spec:
     name: flux-system
     namespace: flux-system
   targetNamespace: renovate
-  wait: false
+  # true (not the repo default false): the renovatejob Kustomization
+  # dependsOn this one and needs Flux to actually confirm the HelmRelease
+  # is Ready (CRDs installed) before applying the RenovateJob CR that
+  # requires them — dependsOn alone only gates on existence, not readiness.
+  wait: true
