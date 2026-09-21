@@ -5,4 +5,5 @@ resources:
   - ./rbac.yaml
   - ./pvc.yaml
   - ./secret-talosconfig.sops.yaml
+  - ./secret-github-app.sops.yaml
   - ./deployment.yaml
