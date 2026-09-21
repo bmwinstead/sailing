@@ -1,0 +1,32 @@
+---
+# Narrow, explicit exception to the no-Secrets rule in
+# ../../claude-code/app/rbac.yaml: lets the claude-code devbox read only the
+# named Sonarr/Radarr/etc API keys in app-secrets (default ns), for
+# read-only API calls like checking download queues. Everything else about
+# that boundary (no other secrets, no write/exec) still holds.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: claude-code-app-secrets-reader
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    resourceNames:
+      - app-secrets
+    verbs:
+      - "get"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-code-app-secrets-reader
+subjects:
+  - kind: ServiceAccount
+    name: claude-code
+    namespace: claude-code
+roleRef:
+  kind: Role
+  name: claude-code-app-secrets-reader
+  apiGroup: rbac.authorization.k8s.io

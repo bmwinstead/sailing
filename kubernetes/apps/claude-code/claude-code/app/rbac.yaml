@@ -1,8 +1,10 @@
 ---
 # Read-only cluster access for troubleshooting from the devbox. Deliberately
-# excludes Secrets (even get/list would leak credentials this pod shouldn't
-# need) and every write/exec verb — actual changes to the cluster go through
-# git + Flux, not this ServiceAccount.
+# excludes Secrets here (even get/list would leak credentials this pod
+# shouldn't need) and every write/exec verb — actual changes to the cluster
+# go through git + Flux, not this ServiceAccount. A narrow, explicit
+# exception for named app API keys lives in ../../secret-access/app/role.yaml
+# rather than here, so it stays visible and easy to audit/revoke separately.
 apiVersion: v1
 kind: ServiceAccount
 metadata:
