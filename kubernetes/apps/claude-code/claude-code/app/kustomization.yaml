@@ -4,4 +4,5 @@ kind: Kustomization
 resources:
   - ./rbac.yaml
   - ./pvc.yaml
+  - ./secret-talosconfig.sops.yaml
   - ./deployment.yaml

@@ -4,7 +4,8 @@
 # First-time setup (persists on the home PVC, survives restarts):
 #   claude setup-token   (or `claude login`)
 #   gh auth login
-#   kubectl cp <your local talosconfig> claude-code/<pod>:/home/node/.talos/config
+# talosctl is already configured read-only (os:reader) via the mounted
+# claude-code-talosconfig secret at /home/node/.talos/config.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,6 +39,9 @@ spec:
           volumeMounts:
             - name: home
               mountPath: /home/node
+            - name: talosconfig
+              mountPath: /home/node/.talos
+              readOnly: true
           resources:
             requests:
               cpu: "250m"
@@ -49,3 +53,6 @@ spec:
         - name: home
           persistentVolumeClaim:
             claimName: claude-code-home
+        - name: talosconfig
+          secret:
+            secretName: claude-code-talosconfig
