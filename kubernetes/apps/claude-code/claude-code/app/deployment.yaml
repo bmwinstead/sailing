@@ -11,9 +11,13 @@
 # below and app/secret-github-app.sops.yaml.example) — entrypoint.sh wires up
 # the gh-app-auth credential helper automatically each start, no manual
 # `gh app-auth setup` step needed.
+# `claude rc` runs in workingDir below, which must already exist on the home
+# PVC (the container fails to start otherwise) — clone this repo there as
+# part of first-time setup.
 # First-time setup (persists on the home PVC, survives restarts) — do this
 # via `kubectl exec` before relying on `claude rc`, since it needs both a
 # login and an accepted workspace-trust dialog to come up cleanly:
+#   git clone https://github.com/bmwinstead/sailing.git /home/node/sailing
 #   claude setup-token   (or `claude login`)
 #   claude                # run once in the target dir to accept workspace trust
 # talosctl is already configured read-only (os:reader) via the mounted
@@ -45,6 +49,7 @@ spec:
       containers:
         - name: claude-code
           image: ghcr.io/bmwinstead/claude-code-devbox:latest
+          workingDir: /home/node/sailing
           args:
             - claude
             - rc
