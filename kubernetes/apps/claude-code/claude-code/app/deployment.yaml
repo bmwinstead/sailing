@@ -1,8 +1,17 @@
 ---
-# An idle devbox, not a service — connect with:
+# Runs `claude remote-control` (alias `rc`) as the main process, so it's
+# reachable from claude.ai/code or the Claude mobile app — not just:
 #   kubectl --kubeconfig=kubeconfig exec -it -n claude-code deploy/claude-code -- bash
-# First-time setup (persists on the home PVC, survives restarts):
+# --spawn=same-dir keeps the server persistent (pre-creates one session,
+# accepts more concurrently) so a disconnect doesn't exit the container.
+# --permission-mode bypassPermissions skips all tool-use confirmation for
+# spawned sessions — deliberate given this pod's RBAC/talosctl/GitHub App
+# access; know what you're connecting to before relying on it.
+# First-time setup (persists on the home PVC, survives restarts) — do this
+# via `kubectl exec` before relying on `claude rc`, since it needs both a
+# login and an accepted workspace-trust dialog to come up cleanly:
 #   claude setup-token   (or `claude login`)
+#   claude                # run once in the target dir to accept workspace trust
 #   gh app-auth setup --app-id <id> --key-file /home/node/.github-app/private-key.pem \
 #     --patterns "github.com/bmwinstead/*"
 #   gh app-auth gitconfig --sync
@@ -36,6 +45,15 @@ spec:
       containers:
         - name: claude-code
           image: ghcr.io/bmwinstead/claude-code-devbox:latest
+          args:
+            - claude
+            - rc
+            - --name
+            - sailing-cluster
+            - --spawn
+            - same-dir
+            - --permission-mode
+            - bypassPermissions
           env:
             - name: HOME
               value: /home/node
