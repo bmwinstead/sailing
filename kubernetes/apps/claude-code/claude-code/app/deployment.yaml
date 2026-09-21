@@ -7,15 +7,15 @@
 # --permission-mode bypassPermissions skips all tool-use confirmation for
 # spawned sessions — deliberate given this pod's RBAC/talosctl/GitHub App
 # access; know what you're connecting to before relying on it.
+# git/gh auth is via the GitHub App (see GH_APP_ID / GH_APP_PRIVATE_KEY_PATH
+# below and app/secret-github-app.sops.yaml.example) — entrypoint.sh wires up
+# the gh-app-auth credential helper automatically each start, no manual
+# `gh app-auth setup` step needed.
 # First-time setup (persists on the home PVC, survives restarts) — do this
 # via `kubectl exec` before relying on `claude rc`, since it needs both a
 # login and an accepted workspace-trust dialog to come up cleanly:
 #   claude setup-token   (or `claude login`)
 #   claude                # run once in the target dir to accept workspace trust
-#   gh app-auth setup --app-id <id> --key-file /home/node/.github-app/private-key.pem \
-#     --patterns "github.com/bmwinstead/*"
-#   gh app-auth gitconfig --sync
-# See app/secret-github-app.sops.yaml.example for creating that key file.
 # talosctl is already configured read-only (os:reader) via the mounted
 # claude-code-talosconfig secret at /home/node/.talos/config.
 apiVersion: apps/v1
@@ -57,6 +57,10 @@ spec:
           env:
             - name: HOME
               value: /home/node
+            - name: GH_APP_ID
+              value: "5015762"
+            - name: GH_APP_PRIVATE_KEY_PATH
+              value: /home/node/.local/share/gh-app-auth/private-key.pem
           volumeMounts:
             - name: home
               mountPath: /home/node
