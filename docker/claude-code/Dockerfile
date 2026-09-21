@@ -11,6 +11,7 @@ ARG SOPS_VERSION=3.9.4
 ARG AGE_VERSION=1.2.1
 ARG JUST_VERSION=1.38.0
 ARG GH_VERSION=2.63.2
+ARG GH_APP_AUTH_VERSION=0.0.8
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl git jq less openssh-client python3 tar unzip vim-tiny \
@@ -25,7 +26,11 @@ RUN ARCH="$(dpkg --print-architecture)" \
     && chmod +x /usr/local/bin/sops \
     && curl -fsSL "https://github.com/FiloSottile/age/releases/download/v${AGE_VERSION}/age-v${AGE_VERSION}-linux-${ARCH}.tar.gz" | tar -xz -C /usr/local/bin --strip-components=1 age/age age/age-keygen \
     && curl -fsSL "https://github.com/casey/just/releases/download/${JUST_VERSION}/just-${JUST_VERSION}-$(uname -m)-unknown-linux-musl.tar.gz" | tar -xz -C /usr/local/bin just \
-    && curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${ARCH}.tar.gz" | tar -xz -C /usr/local/bin --strip-components=2 "gh_${GH_VERSION}_linux_${ARCH}/bin/gh"
+    && curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${ARCH}.tar.gz" | tar -xz -C /usr/local/bin --strip-components=2 "gh_${GH_VERSION}_linux_${ARCH}/bin/gh" \
+    && mkdir -p /usr/local/libexec/gh-extensions/gh-app-auth \
+    && curl -fsSLo /usr/local/libexec/gh-extensions/gh-app-auth/gh-app-auth \
+         "https://github.com/AmadeusITGroup/gh-app-auth/releases/download/v${GH_APP_AUTH_VERSION}/linux-${ARCH}" \
+    && chmod +x /usr/local/libexec/gh-extensions/gh-app-auth/gh-app-auth
 
 RUN npm install -g @anthropic-ai/claude-code && npm cache clean --force
 

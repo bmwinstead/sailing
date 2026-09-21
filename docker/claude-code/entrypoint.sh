@@ -18,4 +18,13 @@ if [ -f "$SA_DIR/token" ] && [ ! -f "$HOME/.kube/config" ]; then
   kubectl config use-context in-cluster >/dev/null
 fi
 
+# gh-app-auth is baked into the image at a fixed path (not under $HOME, since
+# the home PVC mount masks whatever the image put there). Symlink it into
+# gh's extension dir on $HOME each start — cheap and idempotent.
+GH_APP_AUTH_DIR="$HOME/.local/share/gh/extensions/gh-app-auth"
+if [ ! -e "$GH_APP_AUTH_DIR" ]; then
+  mkdir -p "$(dirname "$GH_APP_AUTH_DIR")"
+  ln -s /usr/local/libexec/gh-extensions/gh-app-auth "$GH_APP_AUTH_DIR"
+fi
+
 exec "$@"
