@@ -1,0 +1,40 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: renovate-operator
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: renovate-operator
+  # NOTE: this only configures the operator deployment itself. Renovate
+  # needs a GitHub App credential to actually run jobs — see
+  # app/secret.sops.yaml.example and app/renovatejob.yaml.example. Neither
+  # exists yet; this HelmRelease installs cleanly but Renovate won't run
+  # anything until both are created.
+  interval: 1h
+  values:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+    # Webhook receiver: lets GitHub notify the operator immediately on PR
+    # rebase-checkbox / Dependency Dashboard checkbox interactions, instead
+    # of waiting for the next scheduled RenovateJob run. Optional — only
+    # matters if a RenovateJob sets spec.webhook.enabled: true (see
+    # renovatejob.yaml.example) and the GitHub App's own Webhook section is
+    # configured to point at this route with the token from
+    # secret-webhook-token.sops.yaml.example.
+    webhook:
+      enabled: true
+      route:
+        enabled: true
+        hostnames:
+          - "renovate-webhook.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: https

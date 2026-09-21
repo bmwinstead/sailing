@@ -1,0 +1,42 @@
+# TODO(bryan): PLACEHOLDER — not wired into kustomization.yaml.
+#
+# Tells the operator what to actually run. Requires secret.sops.yaml (see
+# secret.sops.yaml.example) to exist first. Fill in discoveryFilters for the
+# org/repos you want Renovate to manage, then copy to renovatejob.yaml and
+# add "./renovatejob.yaml" to app/kustomization.yaml's resources list.
+---
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: renovate-github
+  namespace: renovate
+spec:
+  discoveryFilters:
+    - CHANGEME-github-org/*
+  provider:
+    name: github
+  image: renovate/renovate:43.104.1
+  parallelism: 5
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  schedule: "0 * * * *"
+  githubAppReference:
+    secretName: github-app-credentials
+    appIdSecretKey: APP_ID
+    installationIdSecretKey: INSTALL_ID
+    pemSecretKey: PEM
+  # Instant response to PR rebase-checkbox / Dependency Dashboard checkbox
+  # clicks instead of waiting for the next `schedule` run. Requires the
+  # GitHub App's Webhook section to be configured (Active, Payload URL
+  # https://renovate-webhook.<your domain>/webhook/v1/github, same secret as
+  # secret-webhook-token.sops.yaml.example, subscribed to Pull request +
+  # Issues events) — see that file for the exact steps.
+  webhook:
+    enabled: true
+    authentication:
+      enabled: true
+      secretRef:
+        name: renovate-webhook-token
+        key: token

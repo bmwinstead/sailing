@@ -1,0 +1,39 @@
+---
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: renovate-github
+  namespace: renovate
+spec:
+  # Scoped to just this repo, matching the narrow App-install scope discussed
+  # earlier. Broaden to "bmwinstead/*" (or add more entries) if the App got
+  # installed on more repos than just this one.
+  discoveryFilters:
+    - bmwinstead/sailing
+  provider:
+    name: github
+  image: renovate/renovate:43.104.1
+  parallelism: 5
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  schedule: "0 * * * *"
+  githubAppReference:
+    secretName: github-app-credentials
+    appIdSecretKey: APP_ID
+    installationIdSecretKey: INSTALL_ID
+    pemSecretKey: PEM
+  # Instant response to PR rebase-checkbox / Dependency Dashboard checkbox
+  # clicks instead of waiting for the next `schedule` run. Requires the
+  # GitHub App's Webhook section to be configured (Active, Payload URL
+  # https://renovate-webhook.<your domain>/webhook/v1/github, same secret as
+  # secret-webhook-token.sops.yaml, subscribed to Pull request + Issues
+  # events) — see that file for the exact steps.
+  webhook:
+    enabled: true
+    authentication:
+      enabled: true
+      secretRef:
+        name: renovate-webhook-token
+        key: token
