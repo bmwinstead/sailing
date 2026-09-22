@@ -1,0 +1,79 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: qui-qbittorrent-instance
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  backoffLimit: 6
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: configure
+          image: docker.io/library/python:3.13-alpine
+          envFrom:
+            - secretRef:
+                name: qui-secret
+          command:
+            - python3
+            - -c
+            - |
+              import http.cookiejar, json, os, time, urllib.error, urllib.request
+
+              QUI_URL = "http://qui.default.svc.cluster.local"
+              QBIT_URL = "http://qbittorrent.default.svc.cluster.local:80"
+              USERNAME = "admin"
+              PASSWORD = os.environ["QUI__ADMIN_PASSWORD"]
+
+              jar = http.cookiejar.CookieJar()
+              opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+
+
+              def req(method, path, body=None):
+                  data = json.dumps(body).encode() if body is not None else None
+                  r = urllib.request.Request(
+                      f"{QUI_URL}{path}",
+                      data=data,
+                      method=method,
+                      headers={"Content-Type": "application/json"},
+                  )
+                  with opener.open(r, timeout=10) as resp:
+                      raw = resp.read()
+                      return json.loads(raw) if raw else None
+
+
+              for attempt in range(60):
+                  try:
+                      req("GET", "/api/auth/check-setup")
+                      break
+                  except Exception:
+                      time.sleep(5)
+              else:
+                  raise SystemExit("qui API never became ready")
+
+              if req("GET", "/api/auth/check-setup")["setupRequired"]:
+                  req("POST", "/api/auth/setup", {"username": USERNAME, "password": PASSWORD})
+              else:
+                  req("POST", "/api/auth/login", {"username": USERNAME, "password": PASSWORD})
+
+              instances = req("GET", "/api/instances") or []
+              if not any(i.get("name") == "qbittorrent" for i in instances):
+                  req(
+                      "POST",
+                      "/api/instances",
+                      {"name": "qbittorrent", "host": QBIT_URL, "username": "", "password": ""},
+                  )
+
+              print("qBittorrent instance configured in qui")
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
