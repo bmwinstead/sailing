@@ -4,8 +4,6 @@ kind: Kustomization
 metadata:
   name: qui
 spec:
-  dependsOn:
-    - name: qbittorrent
   interval: 1h
   path: ./kubernetes/apps/default/qui/app
   postBuild:
