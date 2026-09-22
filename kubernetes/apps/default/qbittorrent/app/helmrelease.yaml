@@ -23,8 +23,9 @@ spec:
               - -c
               - |
                 CONF=/config/qBittorrent/qBittorrent.conf
-                if [ -f "$CONF" ] && ! grep -q '^Session\DiskCacheSize=' "$CONF"; then
-                  sed -i '/^\[BitTorrent\]/a Session\DiskCacheSize=64' "$CONF"
+                if [ -f "$CONF" ]; then
+                  sed -i '/^SessionDiskCacheSize=64$/d' "$CONF"
+                  grep -q '^Session\\DiskCacheSize=' "$CONF" || sed -i '/^\[BitTorrent\]/a Session\\DiskCacheSize=64' "$CONF"
                 fi
             securityContext:
               allowPrivilegeEscalation: false
