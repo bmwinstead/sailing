@@ -18,7 +18,7 @@ spec:
         runAsGroup: 1000
       containers:
         - name: configure
-          image: docker.io/library/python:3.13-alpine
+          image: docker.io/library/python:3.14-alpine
           envFrom:
             - secretRef:
                 name: app-secrets
