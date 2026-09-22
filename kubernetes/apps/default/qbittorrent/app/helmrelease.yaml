@@ -13,6 +13,23 @@ spec:
       qbittorrent:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          init-config:
+            image:
+              repository: docker.io/library/busybox
+              tag: 1.37
+            command:
+              - sh
+              - -c
+              - |
+                CONF=/config/qBittorrent/qBittorrent.conf
+                if [ -f "$CONF" ] && ! grep -q '^Session\DiskCacheSize=' "$CONF"; then
+                  sed -i '/^\[BitTorrent\]/a Session\DiskCacheSize=64' "$CONF"
+                fi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
         containers:
           app:
             image:
@@ -52,7 +69,7 @@ spec:
               requests:
                 cpu: 100m
               limits:
-                memory: 4Gi
+                memory: 8Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
