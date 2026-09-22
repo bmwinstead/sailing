@@ -2,26 +2,26 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: qbittorrent
+  name: qui
 spec:
   chartRef:
     kind: OCIRepository
-    name: qbittorrent
+    name: qui
   interval: 1h
   values:
     controllers:
-      qbittorrent:
+      qui:
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
-              repository: ghcr.io/home-operations/qbittorrent-libtorrentv1
-              tag: 5.2.3@sha256:8a15de24cabfca8041788773436cb176378ff7735e5cb0b2fd94984d4fac6968
+              repository: ghcr.io/autobrr/qui
+              tag: v1.30.0@sha256:1172ca40283330445d61189263a65a31ba703770a230b9e2a913f6e57bc2dd23
             env:
               TZ: America/New_York
-              QBT_WEBUI_PORT: &port 80
-              QBT_TORRENTING_PORT: &torrentPort 50413
+              QUI__HOST: 0.0.0.0
+              QUI__PORT: &port 80
             probes:
               liveness:
                 enabled: true
@@ -34,7 +34,7 @@ spec:
                 custom: true
                 spec:
                   httpGet:
-                    path: /api/v2/app/version
+                    path: /health
                     port: *port
                   periodSeconds: 10
                   timeoutSeconds: 5
@@ -50,9 +50,9 @@ spec:
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
-                cpu: 100m
+                cpu: 10m
               limits:
-                memory: 4Gi
+                memory: 2Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -65,16 +65,18 @@ spec:
         ports:
           http:
             port: *port
-      bittorrent:
-        type: ClusterIP
-        ports:
-          bittorrent:
-            port: *torrentPort
-            protocol: TCP
     route:
       app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: qui
+          gethomepage.dev/description: qBittorrent manager
+          gethomepage.dev/group: Downloads
+          gethomepage.dev/icon: qui
+          gethomepage.dev/href: "https://qui.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "https://qui.${SECRET_DOMAIN}"
         hostnames:
-          - "qbittorrent.${SECRET_DOMAIN}"
+          - "qui.${SECRET_DOMAIN}"
         parentRefs:
           - name: envoy-internal
             namespace: network
@@ -85,10 +87,4 @@ spec:
                 port: *port
     persistence:
       config:
-        existingClaim: qbittorrent
-      downloads:
-        existingClaim: media-downloads
-        globalMounts:
-          - path: /downloads
-      tmp:
-        type: emptyDir
+        existingClaim: qui
