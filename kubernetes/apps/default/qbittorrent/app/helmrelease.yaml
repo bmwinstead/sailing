@@ -1,0 +1,139 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: qbittorrent
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: qbittorrent
+  interval: 1h
+  values:
+    controllers:
+      qbittorrent:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          vuetorrent:
+            image:
+              repository: docker.io/library/python
+              tag: 3.13-alpine
+            command:
+              - sh
+              - -c
+              - |
+                python3 -c "
+                import io, urllib.request, zipfile
+                url = 'https://github.com/VueTorrent/VueTorrent/releases/download/v2.35.0/vuetorrent.zip'
+                data = urllib.request.urlopen(url).read()
+                zipfile.ZipFile(io.BytesIO(data)).extractall('/tmp/vuetorrent-extract')
+                "
+                cp -r /tmp/vuetorrent-extract/vuetorrent/. /vuetorrent/
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities: {drop: ["ALL"]}
+        containers:
+          app:
+            image:
+              repository: ghcr.io/home-operations/qbittorrent-libtorrentv1
+              tag: 5.2.3@sha256:8a15de24cabfca8041788773436cb176378ff7735e5cb0b2fd94984d4fac6968
+            env:
+              TZ: America/New_York
+              QBT_WEBUI_PORT: &port 80
+              QBT_TORRENTING_PORT: &torrentPort 50413
+            probes:
+              liveness:
+                enabled: true
+                spec:
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v2/app/version
+                    port: *port
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 30
+                  periodSeconds: 10
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 4Gi
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+      bittorrent:
+        type: ClusterIP
+        ports:
+          bittorrent:
+            port: *torrentPort
+            protocol: TCP
+    route:
+      app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: qBittorrent
+          gethomepage.dev/description: Torrent downloader
+          gethomepage.dev/group: Downloads
+          gethomepage.dev/icon: qbittorrent
+          gethomepage.dev/href: "https://qbittorrent.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "https://qbittorrent.${SECRET_DOMAIN}"
+        hostnames:
+          - "qbittorrent.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+    persistence:
+      config:
+        existingClaim: qbittorrent
+      vuetorrent-config:
+        type: configMap
+        name: qbittorrent-config
+        advancedMounts:
+          qbittorrent:
+            app:
+              - path: /defaults/qBittorrent.conf
+                subPath: qBittorrent.conf
+                readOnly: true
+      vuetorrent:
+        type: emptyDir
+        advancedMounts:
+          qbittorrent:
+            vuetorrent:
+              - path: /vuetorrent
+            app:
+              - path: /vuetorrent
+                readOnly: true
+      downloads:
+        existingClaim: media-downloads
+        globalMounts:
+          - path: /downloads
+      tmp:
+        type: emptyDir
