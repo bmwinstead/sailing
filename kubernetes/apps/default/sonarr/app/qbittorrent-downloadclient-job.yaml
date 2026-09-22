@@ -1,0 +1,90 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sonarr-qbittorrent-downloadclient
+  namespace: default
+  annotations:
+    kustomize.toolkit.fluxcd.io/force: Enabled
+spec:
+  backoffLimit: 6
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      containers:
+        - name: configure
+          image: docker.io/library/python:3.13-alpine
+          envFrom:
+            - secretRef:
+                name: app-secrets
+          command:
+            - python3
+            - -c
+            - |
+              import json, os, time, urllib.error, urllib.request
+
+              SONARR_URL = "http://sonarr.default.svc.cluster.local"
+              QBIT_HOST = "qbittorrent.default.svc.cluster.local"
+              QBIT_PORT = 80
+              API_KEY = os.environ["SONARR__APP__APIKEY"]
+
+
+              def req(method, path, body=None):
+                  url = f"{SONARR_URL}{path}"
+                  data = json.dumps(body).encode() if body is not None else None
+                  r = urllib.request.Request(
+                      url,
+                      data=data,
+                      method=method,
+                      headers={"X-Api-Key": API_KEY, "Content-Type": "application/json"},
+                  )
+                  with urllib.request.urlopen(r, timeout=10) as resp:
+                      return json.loads(resp.read())
+
+
+              for attempt in range(60):
+                  try:
+                      req("GET", "/api/v3/system/status")
+                      break
+                  except Exception:
+                      time.sleep(5)
+              else:
+                  raise SystemExit("Sonarr API never became ready")
+
+              schema = next(
+                  s
+                  for s in req("GET", "/api/v3/downloadclient/schema")
+                  if s["implementation"] == "QBittorrent"
+              )
+              schema["name"] = "qBittorrent"
+              schema["enable"] = True
+              schema["priority"] = 1
+              schema["removeCompletedDownloads"] = True
+              schema["removeFailedDownloads"] = True
+              for field in schema["fields"]:
+                  if field["name"] == "host":
+                      field["value"] = QBIT_HOST
+                  elif field["name"] == "port":
+                      field["value"] = QBIT_PORT
+                  elif field["name"] == "tvCategory":
+                      field["value"] = "sonarr"
+
+              existing = [
+                  c for c in req("GET", "/api/v3/downloadclient") if c["name"] == "qBittorrent"
+              ]
+              if existing:
+                  schema["id"] = existing[0]["id"]
+                  req("PUT", f"/api/v3/downloadclient/{existing[0]['id']}", schema)
+              else:
+                  req("POST", "/api/v3/downloadclient", schema)
+
+              print("qBittorrent download client configured in Sonarr")
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: ["ALL"]}
