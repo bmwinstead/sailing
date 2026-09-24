@@ -3,7 +3,7 @@
 # the Claude Code CLI itself. Pin versions to match the cluster (kubectl) and
 # this repo's toolchain (mise.toml) so `just` targets behave the same in here
 # as they do on a laptop.
-FROM node:22-bookworm-slim
+FROM node:24-bookworm-slim
 
 ARG KUBECTL_VERSION=v1.36.1
 ARG TALOSCTL_VERSION=v1.9.4
