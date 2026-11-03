@@ -61,6 +61,20 @@ spec:
       spec:
         selectAllByDefault: true
 
+    # The chart's default labelmap copies every node label (NFD, Talos extensions)
+    # onto each series; that exceeds VM's 30-label limit and the series are dropped.
+    kubelet:
+      vmScrape:
+        spec:
+          relabelConfigs:
+            - sourceLabels:
+                - __meta_kubernetes_node_name
+              targetLabel: node
+            - sourceLabels:
+                - __metrics_path__
+              targetLabel: metrics_path
+            - targetLabel: job
+              replacement: kubelet
     kubeProxy:
       enabled: false
     kubeEtcd:
