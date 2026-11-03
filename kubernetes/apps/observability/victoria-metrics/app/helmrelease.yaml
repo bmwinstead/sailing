@@ -75,6 +75,34 @@ spec:
               targetLabel: metrics_path
             - targetLabel: job
               replacement: kubelet
+    kubeControllerManager:
+      vmScrape:
+        spec:
+          jobLabel: app.kubernetes.io/component
+          namespaceSelector:
+            matchNames:
+              - kube-system
+          endpoints:
+            - port: http-metrics
+              scheme: https
+              bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+              tlsConfig:
+                # Talos serves a throwaway self-signed cert valid only for localhost
+                insecureSkipVerify: true
+    kubeScheduler:
+      vmScrape:
+        spec:
+          jobLabel: app.kubernetes.io/component
+          namespaceSelector:
+            matchNames:
+              - kube-system
+          endpoints:
+            - port: http-metrics
+              scheme: https
+              bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+              tlsConfig:
+                # Talos serves a throwaway self-signed cert valid only for localhost
+                insecureSkipVerify: true
     kubeProxy:
       enabled: false
     kubeEtcd:
