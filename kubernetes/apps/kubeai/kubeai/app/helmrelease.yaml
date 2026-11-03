@@ -13,8 +13,8 @@ spec:
         name: kubeai
   interval: 1h
   values:
-    # Scrape vLLM's /metrics into the cluster's kube-prometheus-stack. Prometheus
-    # watches all namespaces with open selectors, so no extra labels are needed.
+    # Scrape vLLM's /metrics. The PodMonitor is converted to a VMPodScrape by the
+    # VictoriaMetrics operator, which watches all namespaces, so no extra labels are needed.
     metrics:
       prometheusOperator:
         vLLMPodMonitor:

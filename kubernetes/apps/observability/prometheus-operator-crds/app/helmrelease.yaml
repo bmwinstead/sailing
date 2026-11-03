@@ -1,0 +1,13 @@
+---
+# Provides monitoring.coreos.com CRDs (ServiceMonitor, PodMonitor, PrometheusRule,
+# Probe, ScrapeConfig, ...). No Prometheus operator runs here; the VictoriaMetrics
+# operator watches these objects and converts them to VM equivalents.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: prometheus-operator-crds
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: prometheus-operator-crds
+  interval: 1h

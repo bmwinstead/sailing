@@ -1,0 +1,38 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pyroscope
+spec:
+  chart:
+    spec:
+      chart: pyroscope
+      version: 2.4.2
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+  interval: 1h
+  values:
+    # Single-binary (monolith) deployment: one pod, data on a Longhorn PVC.
+    pyroscope:
+      persistence:
+        enabled: true
+        accessModes:
+          - ReadWriteOnce
+        size: 20Gi
+        storageClassName: longhorn
+      resources:
+        requests:
+          cpu: 100m
+        limits:
+          memory: 2Gi
+    # Profile collection is configured explicitly in our own Alloy, not the
+    # chart's bundled Alloy (which scrapes pods via profiles.grafana.com annotations).
+    alloy:
+      enabled: false
+    agent:
+      enabled: false
+    minio:
+      enabled: false
+    serviceMonitor:
+      enabled: true
