@@ -33,8 +33,6 @@ spec:
       enabled: true
       spec:
         retentionPeriod: 7d
-        extraArgs:
-          retention.maxDiskSpaceUsageBytes: 10GB
         storage:
           accessModes:
             - ReadWriteOnce
