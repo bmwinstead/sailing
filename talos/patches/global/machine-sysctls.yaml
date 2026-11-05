@@ -3,10 +3,12 @@ machine:
   sysctls:
     fs.inotify.max_user_watches: "1048576" # Watchdog
     fs.inotify.max_user_instances: "8192" # Watchdog
+    kernel.kptr_restrict: "1" # Alloy eBPF profiler needs kallsyms addresses (CAP_SYSLOG only)
     net.core.rmem_max: "7500000" # Cloudflared | QUIC
     net.core.wmem_max: "7500000" # Cloudflared | QUIC
     net.ipv4.neigh.default.gc_thresh1: "4096" # Prevent ARP cache overflows
     net.ipv4.neigh.default.gc_thresh2: "8192" # Prevent ARP cache overflows
     net.ipv4.neigh.default.gc_thresh3: "16384" # Prevent ARP cache overflows
+    net.ipv4.tcp_retries2: "6" # Fail blackholed flows in ~25s, not ~15min (SMB to NAS)
     net.ipv4.tcp_slow_start_after_idle: "0" # Preserve congestion window after idle
     user.max_user_namespaces: "11255" # User Namespaces
