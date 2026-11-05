@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: agent-stack-k8s
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/buildkite/agent-stack-k8s/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: buildkite
+  wait: false

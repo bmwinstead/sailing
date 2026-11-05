@@ -1,0 +1,27 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: agent-stack-k8s
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: agent-stack-k8s
+  # NOTE: this only configures the controller deployment itself. It needs a
+  # Buildkite cluster agent token to actually poll for jobs — see
+  # secret-agent-token.sops.yaml.example. That doesn't exist yet; this
+  # HelmRelease installs cleanly but the controller won't pick up any builds
+  # until the secret is created.
+  interval: 1h
+  values:
+    agentStackSecret: buildkite-agent-token
+    config:
+      # Matches the queue created in the Buildkite cluster referenced by
+      # secret-agent-token.sops.yaml.example. Change both together.
+      tags:
+        - queue=kubernetes
+      pod-pending-timeout: 15m
+    resources:
+      requests:
+        cpu: 100m
+        memory: 100Mi
