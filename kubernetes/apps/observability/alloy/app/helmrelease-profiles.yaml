@@ -31,7 +31,7 @@ spec:
         requests:
           cpu: 50m
         limits:
-          memory: 512Mi
+          memory: 1Gi
       configMap:
         content: |
           // Only pods on this node; the eBPF profiler maps PIDs to containers by cgroup.
