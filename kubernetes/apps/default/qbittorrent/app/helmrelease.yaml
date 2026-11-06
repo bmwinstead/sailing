@@ -26,6 +26,8 @@ spec:
                 if [ -f "$CONF" ]; then
                   sed -i '/^SessionDiskCacheSize=64$/d' "$CONF"
                   grep -q '^Session\\DiskCacheSize=' "$CONF" || sed -i '/^\[BitTorrent\]/a Session\\DiskCacheSize=64' "$CONF"
+                  sed -i -e '/^Session\\DefaultSavePath=/d' -e '/^Session\\TempPath=/d' -e '/^Session\\TempPathEnabled=/d' "$CONF"
+                  sed -i -e '/^\[BitTorrent\]/a Session\\DefaultSavePath=/downloads/complete' -e '/^\[BitTorrent\]/a Session\\TempPath=/downloads/incomplete' -e '/^\[BitTorrent\]/a Session\\TempPathEnabled=true' "$CONF"
                 fi
             securityContext:
               allowPrivilegeEscalation: false
