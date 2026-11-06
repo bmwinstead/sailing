@@ -5,6 +5,9 @@ set script-interpreter := ['bash', '-euo', 'pipefail']
 [group: 'bootstrap']
 mod? bootstrap 'bootstrap'
 
+[group: 'buildkite']
+mod? buildkite 'buildkite'
+
 [group: 'kubernetes']
 mod? kube 'kubernetes'
 
