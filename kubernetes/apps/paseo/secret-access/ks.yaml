@@ -2,14 +2,14 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: claude-code
+  name: paseo-secret-access
 spec:
   interval: 1h
-  path: ./kubernetes/apps/claude-code/claude-code/app
+  path: ./kubernetes/apps/paseo/secret-access/app
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: claude-code
+  targetNamespace: default
   wait: false

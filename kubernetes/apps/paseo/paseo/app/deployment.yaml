@@ -1,0 +1,128 @@
+---
+# Paseo daemon (replaces the old `claude rc` devbox from the claude-code
+# namespace). Agents are processes inside this one pod: create/destroy them from the Paseo CLI or mobile app,
+# no cluster interaction. Reached only over envoy-internal (LAN / WireGuard);
+# relay is left disabled (daemon.relay.enabled=false) so nothing goes via
+# Paseo's servers. Auth is PASEO_PASSWORD (secret-paseo.sops.yaml).
+#
+# Image: docker/paseo (Paseo + the old devbox tooling). devbox-init.sh builds
+# ~/.kube/config from the ServiceAccount token and wires gh-app-auth, exactly
+# as the old entrypoint did — read-only RBAC in rbac.yaml still applies.
+#
+# First-time setup, via `kubectl exec -it -n paseo deploy/paseo -- bash`:
+#   claude auth login        # the home PVC starts empty; log in once
+#   git clone https://github.com/bmwinstead/sailing.git ~/sailing
+# then add ~/sailing as a project in Paseo. talosctl is already configured
+# read-only (os:reader) via the mounted paseo-talosconfig secret.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paseo
+  labels:
+    app: paseo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate # RWO PVC can't be held by two pods during rollout
+  selector:
+    matchLabels:
+      app: paseo
+  template:
+    metadata:
+      labels:
+        app: paseo
+    spec:
+      serviceAccountName: paseo
+      automountServiceAccountToken: true
+      securityContext:
+        runAsUser: 1000 # `paseo` user in the image
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      containers:
+        - name: paseo
+          image: ghcr.io/bmwinstead/paseo:latest
+          ports:
+            - name: http
+              containerPort: 6767
+          env:
+            - name: HOME
+              value: /home/paseo
+            - name: PASEO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paseo
+                  key: PASEO_PASSWORD
+            - name: PASEO_HOSTNAMES
+              value: paseo.${SECRET_DOMAIN}
+            - name: GH_APP_ID
+              value: "5015762"
+            - name: GH_APP_PRIVATE_KEY_PATH
+              value: /home/paseo/.local/share/gh-app-auth/private-key.pem
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: home
+              mountPath: /home/paseo
+            - name: talosconfig
+              mountPath: /home/paseo/.talos
+              readOnly: true
+            - name: github-app
+              mountPath: /home/paseo/.github-app
+              readOnly: true
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "6Gi"
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: paseo-home
+        - name: talosconfig
+          secret:
+            secretName: paseo-talosconfig
+        - name: github-app
+          secret:
+            secretName: paseo-github-app
+            optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paseo
+spec:
+  selector:
+    app: paseo
+  ports:
+    - name: http
+      port: 6767
+      targetPort: http
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: paseo
+spec:
+  hostnames:
+    - paseo.${SECRET_DOMAIN}
+  parentRefs:
+    - name: envoy-internal
+      namespace: network
+      sectionName: https
+  rules:
+    - backendRefs:
+        - name: paseo
+          port: 6767
