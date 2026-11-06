@@ -16,6 +16,10 @@ spec:
   values:
     agentStackSecret: buildkite-agent-token
     config:
+      # Also the image of the checkout container, where the `entire` plugin
+      # installs git-remote-entire. The default alpine variant's BusyBox
+      # sha256sum lacks --check, so that install fails; use a GNU userland.
+      image: ghcr.io/buildkite/agent:4.7.0-ubuntu-24.04
       # Matches the queue created in the Buildkite cluster referenced by
       # secret-agent-token.sops.yaml.example. Change both together.
       tags:
