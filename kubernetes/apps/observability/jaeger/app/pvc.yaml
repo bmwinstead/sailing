@@ -1,0 +1,14 @@
+---
+# Badger (embedded KV store) data, so traces survive pod restarts instead of
+# living only in the chart's default in-memory storage.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jaeger-badger-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 10Gi
