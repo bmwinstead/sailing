@@ -6,4 +6,5 @@ resources:
   - ./pvc.yaml
   - ./secret-talosconfig.sops.yaml
   - ./secret-github-app.sops.yaml
+  - ./secret-paseo.sops.yaml
   - ./deployment.yaml
