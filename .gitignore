@@ -12,6 +12,10 @@
 # Kubernetes
 kubeconfig
 talosconfig
+# OpenTofu
+/buildkite/.terraform/
+/buildkite/*.tfstate*
+/buildkite/*.tfplan
 # Misc.
 .claude/
 .private/

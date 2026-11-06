@@ -17,6 +17,12 @@ just talos upgrade-k8s              # upgrade Kubernetes version
 # Re-render all templated files from cluster.toml
 just configure
 
+# Buildkite cluster/queue/agent-token (OpenTofu, see buildkite/provider.tf)
+just buildkite init
+just buildkite plan
+just buildkite apply
+just buildkite sync-secret          # SOPS-encrypts the agent token into kubernetes/apps/buildkite
+
 # Check Flux resource health
 flux get ks -A
 flux get hr -A
