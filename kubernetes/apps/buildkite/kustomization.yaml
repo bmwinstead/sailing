@@ -9,3 +9,4 @@ components:
 resources:
   - ./namespace.yaml
   - ./agent-stack-k8s/ks.yaml
+  - ./dagger-engine/ks.yaml
