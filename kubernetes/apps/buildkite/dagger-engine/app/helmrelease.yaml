@@ -1,0 +1,46 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dagger-engine
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: dagger-engine
+  # A single, persistent BuildKit cache for CI steps to reuse, instead of
+  # every agent-stack-k8s job pod starting a cold nested engine. Pipeline
+  # steps opt in by setting (not wired in automatically — container names in
+  # spawned job pods depend on each pipeline's own step config, so this
+  # repo doesn't guess at a pod-spec-patch for it):
+  #   _EXPERIMENTAL_DAGGER_RUNNER_HOST: tcp://dagger-engine.buildkite.svc.cluster.local:1234
+  #
+  # SECURITY NOTE: the engine container runs privileged with all capabilities
+  # (required — BuildKit builds/runs containers) and its TCP listener is
+  # unauthenticated: anything that can reach port 1234 in this namespace can
+  # run arbitrary privileged containers on whatever node this pod lands on.
+  # No CiliumNetworkPolicy restricts that yet (none exist anywhere in this
+  # repo today) — worth adding if that risk matters here.
+  interval: 1h
+  values:
+    fullnameOverride: dagger-engine
+    engine:
+      kind: StatefulSet
+      port: 1234
+      # Use the PVC below instead of the chart's hostPath default, since a
+      # StatefulSet replica can land on a different node after a reschedule.
+      hostPath:
+        dataVolume:
+          enabled: false
+      statefulSet:
+        persistentVolumeClaim:
+          enabled: true
+          storageClassName: longhorn
+          resources:
+            requests:
+              storage: 10Gi
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          memory: 8Gi
