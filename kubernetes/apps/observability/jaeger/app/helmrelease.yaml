@@ -1,0 +1,96 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: jaeger
+spec:
+  chart:
+    spec:
+      chart: jaeger
+      version: 4.16.1
+      sourceRef:
+        kind: HelmRepository
+        name: jaeger
+  interval: 1h
+  values:
+    # Jaeger v2's "All-in-One" image is an OTel Collector build, so `userconfig`
+    # here is a full OTel Collector config (the chart passes it as the only
+    # --config flag, no merge with a default) — this is the chart/upstream's
+    # own documented config-badger.yaml example, trimmed to one store and
+    # pointed at the PVC below instead of the chart's ephemeral default.
+    #
+    # Dagger traces: point the environment that invokes the `dagger` CLI
+    # (not the dagger-engine pod itself — Dagger's OTEL export happens
+    # client-side) at:
+    #   OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger.observability.svc.cluster.local:4318
+    userconfig:
+      service:
+        extensions: [jaeger_storage, jaeger_query, healthcheckv2]
+        pipelines:
+          traces:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [jaeger_storage_exporter]
+        telemetry:
+          resource:
+            service.name: jaeger
+          metrics:
+            level: detailed
+            readers:
+              - pull:
+                  exporter:
+                    prometheus:
+                      host: 0.0.0.0
+                      port: 8888
+          logs:
+            level: info
+      extensions:
+        healthcheckv2:
+          use_v2: true
+          http: {}
+        jaeger_query:
+          storage:
+            traces: primary_store
+        jaeger_storage:
+          backends:
+            primary_store:
+              badger:
+                directories:
+                  keys: /badger/keys
+                  values: /badger/values
+                ephemeral: false
+                ttl:
+                  spans: 168h
+      receivers:
+        otlp:
+          protocols:
+            grpc: {}
+            http: {}
+      processors:
+        batch: {}
+      exporters:
+        jaeger_storage_exporter:
+          trace_storage: primary_store
+    jaeger:
+      extraVolumes:
+        - name: badger-data
+          persistentVolumeClaim:
+            claimName: jaeger-badger-data
+      extraVolumeMounts:
+        - name: badger-data
+          mountPath: /badger
+      # Badger recovery on startup can be slow; give it more room than the
+      # default probes before the pod gets killed for not being ready yet.
+      startupProbe:
+        httpGet:
+          path: /status
+          port: 13133
+        failureThreshold: 120
+        periodSeconds: 10
+      httproute:
+        enabled: true
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        hostnames:
+          - jaeger.winstead.io
