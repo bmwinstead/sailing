@@ -1,0 +1,5 @@
+can you add the performance repo to the paseo container
+
+---
+
+bake them into the image
