@@ -28,7 +28,7 @@ resource "buildkite_pipeline" "performance" {
           kubernetes = {
             podSpec = {
               # Needs bash, curl, git, GNU coreutils (entire plugin requirements).
-              containers = [{ image = "debian:bookworm-slim" }]
+              containers = [{ image = "ghcr.io/buildkite/agent:4.7.0-ubuntu-24.04" }]
             }
           }
         },
