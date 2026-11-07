@@ -1,0 +1,41 @@
+ok I did that
+
+---
+
+I need to make sure we're using private sessions - I don't want to use Paseo's servers. I will have a VPN setup on my phone using Unifi's wireguard. What're my options?
+
+---
+
+I want to go with Option A
+
+---
+
+it does resolve winstead.io
+
+---
+
+yes let's nuke rc-test namespace
+
+---
+
+ok I'm getting into paseo setup - is there any integration with like devcontainers or anything like that? I'm trying to keep the dev environment for the agent consistent
+
+---
+
+I want the draft - make a new branch and we'll store the image on ghcr. We might have one for claude code already?
+
+---
+
+how does paseo compare to omniagent?
+
+---
+
+I mean this https://omnigent.ai/
+
+---
+
+do some deeper research on omnigent's deployment story.
+
+---
+
+dig more into claude auth and the issues. 900 issues isn't a problem if none of them are getting movement but if they're regularly churning that seems okay.
