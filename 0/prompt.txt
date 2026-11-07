@@ -1,0 +1,9 @@
+I'm considering entire for git hosting for this project. I'm debating importing existing claude code sessions into it for their trails feature... can you tell me what data that will import before I push it to entire?
+
+---
+
+can you clear all the existing outgoing checkpoints?
+
+---
+
+can we setup flux to read from entire instead of github?
