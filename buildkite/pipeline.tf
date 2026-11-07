@@ -14,7 +14,7 @@ resource "buildkite_pipeline" "performance" {
 
   steps = yamlencode({
     steps = [{
-      label    = ":dagger: dagger check"
+      label    = ":hammer_and_wrench: dagger check"
       key      = "check"
       agents   = { queue = buildkite_cluster_queue.kubernetes.key }
       commands = [replace(file("${path.module}/performance-step.sh"), "$", "$$")]
