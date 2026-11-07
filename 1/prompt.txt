@@ -1,0 +1,85 @@
+I want to understand fluxcd's multi-repo and multi-cluster options can you lay it out at a high level?
+
+---
+
+ok I did all that except the token - do I need to make a buildkite pipeline resource next?
+
+---
+
+entire claims to have buildkite support so look into that more deeply
+
+---
+
+winstead-io is the slug. Try and get a basic pipeline going on buildkite from the entire performance repo - once it works then put it in tofu. We can merge this existing PR to get the runners going.
+
+---
+
+admin merge that PR
+
+---
+
+then start on the buildkite pipeline stuff. Instead of keeping a buildkite pipeline yaml in the repo, I want to use dagger.io for the CI. We will run a persistent engine in the cluster eventually, but for now it's okay for it to be ephemeral.
+
+---
+
+do option 1
+
+---
+
+wait instead of doing ephemeral engine sidecars just take over the dagger engine PR and get that merged to have the persistent engine runner
+
+---
+
+yes merge 97 then continue on
+
+---
+
+write the tofu now I'll run the apply myself
+
+---
+
+ok I did that
+
+---
+
+is done
+
+---
+
+shouldn't this stuff be handled by the entire buildkite plugin?
+
+---
+
+ok I just did all that - yes rewrite the tofu
+
+---
+
+yes please cleanup. I also kicked the build so check on that
+
+---
+
+also I wonder if it's worth moving the stuff in the tofu pipeline into a dagger module? Then the pipeline itself can just be a dagger call?
+
+---
+
+admin merge 98 so we can test.
+
+---
+
+is there a buildkite cli we can use
+
+---
+
+ok it's installed and authed as buildkite. Use that to trigger builds from now on. Looks like recent build failed with git auth
+
+---
+
+ok I remade it by deleting the old one and remaking with tofu apply
+
+---
+
+it failed again so I recreated with the UI and the entire connection looks better. But I can't apply the tofu on top because of state conflicts so it needs an import. allow self-hosted agents setting is checked [Image #1]
+
+---
+
+ok I did it can you kick a build and see if it works
