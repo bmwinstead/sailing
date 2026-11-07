@@ -53,6 +53,10 @@ spec:
                 secretKeyRef:
                   name: paseo
                   key: PASEO_PASSWORD
+            # No OS keyring in the container; keep `entire auth login` tokens in
+            # ~/.config/entire on the home PVC so they survive restarts.
+            - name: ENTIRE_TOKEN_STORE
+              value: file
             - name: PASEO_HOSTNAMES
               value: paseo.${SECRET_DOMAIN}
             - name: GH_APP_ID
