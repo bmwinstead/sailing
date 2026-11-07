@@ -1,0 +1,5 @@
+ok you're in yolo mode now - admin merge and roll that shit out
+
+---
+
+how do we handle persistent entire token logins? I had to set ENTIRE_TOKEN_STORE=file
