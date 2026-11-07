@@ -1,0 +1,9 @@
+ok new plan: you're going to modify the buildkite pipeline using the cli and you can admin merge PRs related to this until it all works.
+
+---
+
+once it's done make the tofu changes to match and I'll apply it then
+
+---
+
+the dagger emoji doesn't seem to resolve in the buildkite ui [Image #2]
