@@ -22,6 +22,17 @@ COPY --from=devbox /usr/local/bin/kubectl /usr/local/bin/talosctl /usr/local/bin
      /usr/local/bin/
 COPY --from=devbox /usr/local/libexec/gh-extensions /usr/local/libexec/gh-extensions
 
+# Entire CLI + git-remote-entire, for cloning entire:// repos (e.g. performance).
+# `entire auth login` is still interactive; credentials live on the home PVC.
+ARG ENTIRE_VERSION=0.13.1
+ARG TARGETARCH
+RUN cd /tmp \
+    && curl -fsSLO "https://github.com/entireio/cli/releases/download/v${ENTIRE_VERSION}/entire_linux_${TARGETARCH}.tar.gz" \
+    && curl -fsSLO "https://github.com/entireio/cli/releases/download/v${ENTIRE_VERSION}/checksums.txt" \
+    && grep " entire_linux_${TARGETARCH}.tar.gz\$" checksums.txt | sha256sum -c - \
+    && tar -xzf "entire_linux_${TARGETARCH}.tar.gz" -C /usr/local/bin entire git-remote-entire \
+    && rm -f /tmp/entire_linux_* /tmp/checksums.txt
+
 # The base image ships no agent CLIs (see paseo.sh/docs/docker).
 RUN npm install -g @anthropic-ai/claude-code && npm cache clean --force
 
