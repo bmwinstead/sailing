@@ -1,0 +1,87 @@
+I want to add an oci registry to the buildkite terraform
+
+---
+
+can we make the terrafrom provider auth with the cli auth?
+
+---
+
+let's add that in the justfile. I have the cli installed as buildkite
+
+---
+
+<pasted_content id="b386">
+Changes to Outputs:
+  + registry_slug = (known after apply)
+╷
+│ Error: Unable to read Cluster
+│
+│   with buildkite_cluster.sailing,
+│   on cluster.tf line 1, in resource "buildkite_cluster" "sailing":
+│    1: resource "buildkite_cluster" "sailing" {
+│
+│ Unable to read Cluster: returned error 403: {"data":null,"errors":[{"message":"Your access
+│ token doesn't have the graphql scope"}]}
+</pasted_content id="b386">
+
+---
+
+can we add graphql via scopes in the cli auth
+
+---
+
+ok undo the justfile change
+
+---
+
+ok now how do we auth to push and pull to the registry? I specifically want to push from a buildkite job (ultimately kicked off by a native repo in entire.com), and pull from the local flux-managed kubernetes cluster.
+
+---
+
+I don't need an imagepullsecret - this will only be used for flux ocirepository auth. Please work on those tasks
+
+---
+
+no imagepullsecret needed - do everything but modify the buildkite pipeline.
+
+---
+
+let's also add a webhook so that flux can update immediately
+
+---
+
+add teh buildkite webhook in terraform
+
+---
+
+yes add a comment in registry.tf.
+
+---
+
+give me instructions
+
+---
+
+commit and push to deploy the flux webhook
+
+---
+
+include everything in the pr
+
+---
+
+ok change of action - I want buildkite webhooks to go to renovate which will propose upgrades to flux via PRs to the sailing repo.
+
+---
+
+/pstack:poteto-mode I want to step back and envision this flow e2e - goals:
+1. infra state for performance pipeline is kept in performance repo. infra state is fully declarative and able to rollback easily through git operations.
+2. flux as gitops engine to deploy to cluster. 
+3. performance repo hosted on entire.com.
+4. changes to cluster are as close to instantaneous as possible when manifest changes are pushed to performance repo.
+5. minimal moving parts.
+6. heading toward automated rollback based on o11y data. Not required for mvp, but we should keep it in mind.
+
+---
+
+the registry exists. Add the short design doc in the performance repo, then do step 2 and 3
