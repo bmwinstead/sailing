@@ -1,0 +1,18 @@
+---
+# Manifests from the performance repo (Entire), published as a Flux OCI
+# artifact by its Buildkite pipeline. The label makes the buildkite-registry
+# Receiver reconcile this on every package.created event, so interval is only
+# a fallback.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: performance
+  labels:
+    buildkite-registry: "true"
+spec:
+  interval: 1h
+  url: oci://packages.buildkite.com/winstead-io/sailing/performance
+  ref:
+    tag: latest
+  secretRef:
+    name: buildkite-registry-pull

@@ -14,3 +14,7 @@ output "agent_token" {
 output "performance_pipeline_slug" {
   value = buildkite_pipeline.performance.slug
 }
+
+output "registry_slug" {
+  value = buildkite_registry.oci.slug
+}
