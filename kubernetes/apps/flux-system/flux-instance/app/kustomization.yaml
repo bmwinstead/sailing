@@ -7,3 +7,5 @@ resources:
   - ./secret.sops.yaml
   - ./httproute.yaml
   - ./receiver.yaml
+  - ./receiver-buildkite.yaml
+  - ./secret-buildkite-webhook.sops.yaml
