@@ -1,8 +1,9 @@
 ---
 # Buildkite Packages `package.created` webhook -> immediate OCIRepository
 # reconcile. Buildkite signs deliveries in a format Flux's generic-hmac
-# receiver can't verify, so this is a plain `generic` receiver: the secret
-# hashed into the webhook path is the only protection.
+# receiver can't verify, so this is a plain `generic` receiver. The gateway
+# route (httproute.yaml) is the authentication. It only forwards requests that
+# carry the X-Buildkite-Token header (BUILDKITE_WEBHOOK_TOKEN in cluster-secrets).
 # Webhook URL: https://flux-webhook.<domain><status.webhookPath>
 #   kubectl -n flux-system get receiver buildkite-registry -o jsonpath='{.status.webhookPath}'
 # Reconciles every OCIRepository in flux-system labeled
