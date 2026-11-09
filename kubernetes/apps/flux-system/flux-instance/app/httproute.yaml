@@ -1,4 +1,6 @@
 ---
+# One rule per receiver path. A broad /hook/ prefix would also reach the
+# buildkite-registry receiver without its token header.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -18,4 +20,32 @@ spec:
       matches:
         - path:
             type: PathPrefix
-            value: /hook/
+            value: /hook/c1bd060248dcf355c7564f007d81630654cca8124c6bdd71c40e8f6f6b421bbf
+---
+# Buildkite sends the webhook token as X-Buildkite-Token. The route only
+# matches when the header equals the token, so other requests get a 404 from
+# the gateway and never reach the receiver.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: buildkite-registry-webhook
+spec:
+  hostnames:
+    - "flux-webhook.${SECRET_DOMAIN}"
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+      sectionName: https
+  rules:
+    - backendRefs:
+        - name: webhook-receiver
+          namespace: flux-system
+          port: 80
+      matches:
+        - path:
+            type: PathPrefix
+            value: /hook/f4b8ef07051a93074ad15a631f68a11ba17214197299f10339190993d4d98a58
+          headers:
+            - name: X-Buildkite-Token
+              type: Exact
+              value: "${BUILDKITE_WEBHOOK_TOKEN}"

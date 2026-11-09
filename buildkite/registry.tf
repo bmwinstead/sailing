@@ -29,5 +29,5 @@ resource "buildkite_registry" "oci" {
 # provider and the Buildkite API have no registry webhook support. In the UI
 # (registry > Settings > Notification Services > Webhook) set the URL to
 # https://flux-webhook.<domain><Receiver buildkite-registry status.webhookPath>,
-# leave the token empty, and select `package.created`. Flux side:
+# set the token to BUILDKITE_WEBHOOK_TOKEN from kubernetes/components/sops/cluster-secrets.sops.yaml (sent as X-Buildkite-Token, checked by the gateway route), and select `package.created`. Flux side:
 # kubernetes/apps/flux-system/flux-instance/app/receiver-buildkite.yaml.
