@@ -21,3 +21,9 @@ variable "dagger_version" {
   type        = string
   default     = "v1.0.0-beta.25"
 }
+
+variable "registry_name" {
+  description = "Buildkite Packages OCI registry (and owning team) name. Letters and numbers only."
+  type        = string
+  default     = "sailing"
+}
