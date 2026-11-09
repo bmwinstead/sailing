@@ -4,5 +4,4 @@ kind: Kustomization
 resources:
   - ./ocirepository.yaml
   - ./flux-kustomization.yaml
-  # Add ./secret-registry-pull.sops.yaml once created, see
-  # kubernetes/apps/buildkite/secret-registry-pull.sops.yaml.example
+  - ./secret-registry-pull.sops.yaml
