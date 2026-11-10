@@ -3,8 +3,9 @@
 # create it in the UI by picking the repo from the connection, then
 # `tofu import buildkite_pipeline.performance <graphql-id>`.
 #
-# Step logic lives in performance-step.sh. Buildkite interpolates $VAR in
-# pipeline settings, so every $ is doubled to reach the pod untouched.
+# This pipeline holds no repo logic. Its one step uploads .buildkite/pipeline.yml
+# from the performance repo. Cluster settings that repo steps need come from
+# the pipeline env below.
 resource "buildkite_pipeline" "performance" {
   name           = "performance"
   description    = "Dagger CI for the Entire-hosted performance repo"
@@ -13,15 +14,15 @@ resource "buildkite_pipeline" "performance" {
   cluster_id     = buildkite_cluster.sailing.id
 
   steps = yamlencode({
+    env = {
+      DAGGER_VERSION     = var.dagger_version
+      DAGGER_ENGINE_HOST = "tcp://dagger-engine.buildkite.svc.cluster.local:1234"
+    }
     steps = [{
-      label    = ":hammer_and_wrench: dagger check"
-      key      = "check"
-      agents   = { queue = buildkite_cluster_queue.kubernetes.key }
-      commands = [replace(file("${path.module}/performance-step.sh"), "$", "$$")]
-      env = {
-        DAGGER_VERSION     = var.dagger_version
-        DAGGER_ENGINE_HOST = "tcp://dagger-engine.buildkite.svc.cluster.local:1234"
-      }
+      label  = ":pipeline: upload"
+      agents = { queue = buildkite_cluster_queue.kubernetes.key }
+      # The repo's steps use $VAR at run time, so skip upload-time interpolation.
+      commands = ["buildkite-agent pipeline upload --no-interpolation"]
       plugins = [
         "entire",
         {
