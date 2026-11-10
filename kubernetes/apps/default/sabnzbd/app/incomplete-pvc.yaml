@@ -1,0 +1,16 @@
+---
+# Local scratch space for downloads in progress. Assembling and unpacking on
+# SMB made the NAS reset the session, which paused SABnzbd. Finished files
+# still land on the SMB share (/downloads/complete).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sabnzbd-incomplete
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 300Gi
+  storageClassName: longhorn

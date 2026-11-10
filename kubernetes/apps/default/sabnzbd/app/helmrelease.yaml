@@ -11,6 +11,7 @@ spec:
   values:
     controllers:
       sabnzbd:
+        strategy: Recreate # RWO volume: stop the old pod before the new one mounts it
         annotations:
           reloader.stakater.com/auto: "true"
         containers:
@@ -127,5 +128,9 @@ spec:
         existingClaim: media-downloads
         globalMounts:
           - path: /downloads
+      incomplete:
+        existingClaim: sabnzbd-incomplete
+        globalMounts:
+          - path: /downloads/incomplete # overlays the SMB share's incomplete folder
       tmp:
         type: emptyDir
