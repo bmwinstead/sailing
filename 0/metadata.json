@@ -1,0 +1,64 @@
+{
+  "cli_version": "0.13.1",
+  "checkpoint_id": "01M71PJ3JA686NWHYHS555FGN6",
+  "session_id": "fbd49e74-ea15-4d9b-8958-f416df6ad02a",
+  "strategy": "manual-commit",
+  "created_at": "2026-11-10T03:03:25.796475Z",
+  "branch": "fix/external-dns-gateway-target",
+  "checkpoints_count": 2,
+  "save_step_count": 1,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "claude-sonnet-5-5",
+  "turn_id": "f1efe6ddda71",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 28,
+    "cache_creation_tokens": 10508,
+    "cache_read_tokens": 3013835,
+    "output_tokens": 5949,
+    "api_call_count": 12
+  },
+  "redaction": {
+    "replacements": 44,
+    "layers": {
+      "betterleaks": 9,
+      "connection_string": 0,
+      "credential_key": 0,
+      "credential_value": 24,
+      "credentialed_uri": 0,
+      "entropy": 13,
+      "key_context": 0,
+      "provider_token": 0,
+      "shell_stdin": 0
+    }
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-pstack:poteto-mode-2026-11-09T15:22:35.382901Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "pstack:poteto-mode"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "25507622ffff",
+      "timestamp": "2026-11-09T15:22:35.382901Z",
+      "native": {
+        "command": "/pstack:poteto-mode"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/pstack:poteto-mode",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 39
+  }
+}

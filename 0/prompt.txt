@@ -1,0 +1,202 @@
+I want to add an oci registry to the buildkite terraform
+
+---
+
+can we make the terrafrom provider auth with the cli auth?
+
+---
+
+let's add that in the justfile. I have the cli installed as buildkite
+
+---
+
+<pasted_content id="b386">
+Changes to Outputs:
+  + registry_slug = (known after apply)
+╷
+│ Error: Unable to read Cluster
+│
+│   with buildkite_cluster.sailing,
+│   on cluster.tf line 1, in resource "buildkite_cluster" "sailing":
+│    1: resource "buildkite_cluster" "sailing" {
+│
+│ Unable to read Cluster: returned error 403: {"data":null,"errors":[{"message":"Your access
+│ token doesn't have the graphql scope"}]}
+</pasted_content id="b386">
+
+---
+
+can we add graphql via scopes in the cli auth
+
+---
+
+ok undo the justfile change
+
+---
+
+ok now how do we auth to push and pull to the registry? I specifically want to push from a buildkite job (ultimately kicked off by a native repo in entire.com), and pull from the local flux-managed kubernetes cluster.
+
+---
+
+I don't need an imagepullsecret - this will only be used for flux ocirepository auth. Please work on those tasks
+
+---
+
+no imagepullsecret needed - do everything but modify the buildkite pipeline.
+
+---
+
+let's also add a webhook so that flux can update immediately
+
+---
+
+add teh buildkite webhook in terraform
+
+---
+
+yes add a comment in registry.tf.
+
+---
+
+give me instructions
+
+---
+
+commit and push to deploy the flux webhook
+
+---
+
+include everything in the pr
+
+---
+
+ok change of action - I want buildkite webhooks to go to renovate which will propose upgrades to flux via PRs to the sailing repo.
+
+---
+
+/pstack:poteto-mode I want to step back and envision this flow e2e - goals:
+1. infra state for performance pipeline is kept in performance repo. infra state is fully declarative and able to rollback easily through git operations.
+2. flux as gitops engine to deploy to cluster. 
+3. performance repo hosted on entire.com.
+4. changes to cluster are as close to instantaneous as possible when manifest changes are pushed to performance repo.
+5. minimal moving parts.
+6. heading toward automated rollback based on o11y data. Not required for mvp, but we should keep it in mind.
+
+---
+
+the registry exists. Add the short design doc in the performance repo, then do step 2 and 3
+
+---
+
+try step 2 again
+
+---
+
+give me a buildkite auth login with every available scope
+
+---
+
+ok try again
+
+---
+
+ok admin merge 107 and wait for kube to reconcile
+
+---
+
+I want to use only authenticated pushes. I will make and add the pull-only token
+
+---
+
+I want the webhook push to be authenticated
+
+---
+
+admin merge and begin testing
+
+---
+
+I have hte pull token - give me instructions to add it
+
+---
+
+<pasted_content id="b386">
+bmw@Mac ~/g/sailing (feat/performance-pull-secret)> set f kubernetes/apps/flux-system/performance/app/secret-registry-pull.sops.yaml
+                                                    printf -- '---\napiVersion: v1\nkind: Secret\nmetadata:\n  name: buildkite-registry-pull\nstringData:\n  username: buildkite\n  password: %s\n' $BK_PULL | sops --filename-override (pwd)/$f --encrypt /dev/stdin > $f
+                                                    set -e BK_PULL
+Error unmarshalling file: yaml: unmarshal errors:
+  line 1: cannot unmarshal !!str `--` into map[string]interface {}
+</pasted_content id="b386">
+
+---
+
+set
+
+---
+
+step 3 did not work and returns 4
+
+<pasted_content id="b386">
+bmw@Mac ~/g/sailing (feat/performance-pull-secret)> set f kubernetes/apps/flux-system/performance/app/secret-registry-pull.sops.yaml
+                                                    printf 'apiVersion: v1\nkind: Secret\nmetadata:\n  name: buildkite-registry-pull\nstringData:\n  username: buildkite\n  password: %s\n' $BK_PULL | sops --filename-override (pwd)/$f --encrypt /dev/stdin > $f
+                                                    set -e BK_PULL
+bmw@Mac ~/g/sailing (feat/performance-pull-secret) [4]>
+</pasted_content id="b386">
+
+---
+
+ok it works
+
+---
+
+merge it
+
+---
+
+<task-notification>
+<task-id>bzdcho8qn</task-id>
+<tool-use-id>toolu_01J2FXfxHpUs9r4rx4BreknQ</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-bmw-git-sailing/fbd49e74-ea15-4d9b-8958-f416df6ad02a/tasks/bzdcho8qn.output</output-file>
+<status>completed</status>
+<summary>Background command "flux --kubeconfig=kubeconfig reconcile ks performance-source -n flux-system 2&gt;&amp;1 | tail -2; flux --kubeconfig=kubeconfig reconcile source oci performance -n flux-system 2&gt;&amp;1 | tail -3; kubectl --kubeconfig=kubeconfig -n flux-system get ocirepository performance -o jsonpath='{.status.conditions[?(@.type=="Ready")].message}' | cut -c1-300; echo" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+yes make a trail for the performance repo
+
+---
+
+tell me what hte build shows
+
+---
+
+troubleshoot - do 1 and 2
+
+---
+
+I made it the default queue - try again
+
+---
+
+ok I tried to merge but it seems to have failed? can you see hwat's up
+
+---
+
+try the merge
+
+---
+
+merge it
+
+---
+
+the webhook setting is live but it's failing on dns: Failed to resolve remote hostname: lookup flux-webhook.winstead.io on 10.0.0.2:53: no such host
+
+---
+
+merge it
+
+---
+
+I merged it
