@@ -149,6 +149,7 @@ spec:
     - noserverino
     - nobrl
     - hard # retry after an SMB reconnect instead of failing in-flight writes
+    - nosharesock # own TCP session and tcon; otherwise the kernel reuses the soft //nas/Media tcon
   csi:
     driver: smb.csi.k8s.io
     readOnly: false
