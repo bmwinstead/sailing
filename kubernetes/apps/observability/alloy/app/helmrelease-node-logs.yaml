@@ -50,17 +50,15 @@ spec:
 
           // otelcol.exporter.loki wraps each record as {"body": "<talos json>"}.
           // Kernel lines carry no talos-service, so that label is only set for service logs.
+          // Do not use talos-time as the timestamp: for kernel lines it comes from the raw
+          // printk clock, which NTP does not adjust and which drifts ~6s/day against wall time.
           loki.process "talos" {
             stage.json {
               expressions = {body = "body"}
             }
             stage.json {
               source      = "body"
-              expressions = {level = "\"talos-level\"", service = "\"talos-service\"", ts = "\"talos-time\""}
-            }
-            stage.timestamp {
-              source = "ts"
-              format = "RFC3339Nano"
+              expressions = {level = "\"talos-level\"", service = "\"talos-service\""}
             }
             stage.labels {
               values = {level = "", service = ""}
