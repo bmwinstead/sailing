@@ -1,0 +1,41 @@
+commit and push
+
+---
+
+yes apply the patch
+
+---
+
+how would we set mount option hard?
+
+---
+
+yes
+
+---
+
+it paused again last night
+
+---
+
+let's investigate why talos-time is 16 minutes early. ideally everything should use ntp and have the same relative time
+
+---
+
+ok make that change
+
+---
+
+a persistent pcap would be nice.. sab is currently donwloading. I have a theory, because most of the downloads are missing articles I think ti gets through those fine but when it runs into something that has chunks to download it chokes
+
+---
+
+I also set a limit of 70MB/s in sab
+
+---
+
+let's talk about sabnzbd alternatives and tuning... are there any more modern alternatives to sab?
+
+---
+
+ok move incomplete to local storage
