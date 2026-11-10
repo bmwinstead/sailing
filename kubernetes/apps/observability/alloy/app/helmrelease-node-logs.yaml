@@ -48,16 +48,28 @@ spec:
             forward_to = [loki.process.talos.receiver]
           }
 
-          // Kernel lines carry no talos-service, so the service label is only set for service logs.
+          // otelcol.exporter.loki wraps each record as {"body": "<talos json>"}.
+          // Kernel lines carry no talos-service, so that label is only set for service logs.
           loki.process "talos" {
             stage.json {
-              expressions = {level = "\"talos-level\"", service = "\"talos-service\""}
+              expressions = {body = "body"}
+            }
+            stage.json {
+              source      = "body"
+              expressions = {level = "\"talos-level\"", service = "\"talos-service\"", ts = "\"talos-time\""}
+            }
+            stage.timestamp {
+              source = "ts"
+              format = "RFC3339Nano"
             }
             stage.labels {
               values = {level = "", service = ""}
             }
             stage.static_labels {
               values = {job = "talos", node = sys.env("NODE_NAME")}
+            }
+            stage.output {
+              source = "body"
             }
             forward_to = [loki.write.endpoint.receiver]
           }
