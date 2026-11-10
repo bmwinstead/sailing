@@ -1,0 +1,28 @@
+---
+# UNAS Pro at 10.20.0.50. Exporters live in /persistent on the NAS;
+# run /persistent/system/restore-monitoring.sh there after a firmware update.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: nas-node
+spec:
+  jobName: nas-node
+  targetEndpoints:
+    - targets:
+        - "10.20.0.50:9100"
+      labels:
+        instance: nas
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: nas-smartctl
+spec:
+  jobName: nas-smartctl
+  targetEndpoints:
+    - targets:
+        - "10.20.0.50:9633"
+      interval: 1m
+      scrapeTimeout: 30s
+      labels:
+        instance: nas
