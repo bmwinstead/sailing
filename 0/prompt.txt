@@ -1,0 +1,25 @@
+commit and push
+
+---
+
+yes apply the patch
+
+---
+
+how would we set mount option hard?
+
+---
+
+yes
+
+---
+
+it paused again last night
+
+---
+
+let's investigate why talos-time is 16 minutes early. ideally everything should use ntp and have the same relative time
+
+---
+
+ok make that change
