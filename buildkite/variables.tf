@@ -16,12 +16,6 @@ variable "performance_repo_url" {
   default     = "entire://aws-us-east-2.entire.io/et/winstead-io/performance"
 }
 
-variable "dagger_version" {
-  description = "Dagger CLI version; must match the engine chart in kubernetes/apps/buildkite/dagger-engine"
-  type        = string
-  default     = "v1.0.0-beta.25"
-}
-
 variable "registry_name" {
   description = "Buildkite Packages OCI registry (and owning team) name. Letters and numbers only."
   type        = string
