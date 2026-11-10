@@ -1,0 +1,74 @@
+---
+# Receives Talos kernel and service logs (json_lines over TCP) on each node's
+# loopback and ships them to Loki. Talos sends here via KmsgLogConfig and
+# machine.logging in talos/patches/global/machine-logging.yaml.
+# otelcol.receiver.tcplog is experimental; expect to revisit it on Alloy upgrades.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy-node-logs
+spec:
+  chart:
+    spec:
+      chart: alloy
+      version: 1.15.0
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+  interval: 1h
+  values:
+    controller:
+      type: daemonset
+      hostNetwork: true # Talos can only reach 127.0.0.1 on the host
+      dnsPolicy: ClusterFirstWithHostNet
+    alloy:
+      listenPort: 12346 # keep clear of other host-network listeners
+      extraArgs:
+        - --stability.level=experimental
+      extraEnv:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+      resources:
+        requests:
+          cpu: 20m
+        limits:
+          memory: 256Mi
+      configMap:
+        content: |
+          otelcol.receiver.tcplog "talos" {
+            listen_address = "127.0.0.1:6050"
+            output {
+              logs = [otelcol.exporter.loki.talos.input]
+            }
+          }
+
+          otelcol.exporter.loki "talos" {
+            forward_to = [loki.process.talos.receiver]
+          }
+
+          // Kernel lines carry no talos-service, so the service label is only set for service logs.
+          loki.process "talos" {
+            stage.json {
+              expressions = {level = "\"talos-level\"", service = "\"talos-service\""}
+            }
+            stage.labels {
+              values = {level = "", service = ""}
+            }
+            stage.static_labels {
+              values = {job = "talos", node = sys.env("NODE_NAME")}
+            }
+            forward_to = [loki.write.endpoint.receiver]
+          }
+
+          loki.write "endpoint" {
+            endpoint {
+              url = "http://loki.observability.svc.cluster.local:3100/loki/api/v1/push"
+            }
+          }
+    rbac:
+      create: false
+    serviceAccount:
+      create: true
+      name: alloy-node-logs

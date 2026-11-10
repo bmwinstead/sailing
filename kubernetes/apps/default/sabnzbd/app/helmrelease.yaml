@@ -56,6 +56,29 @@ spec:
                 cpu: 100m
               limits:
                 memory: 12Gi
+          exporter:
+            image:
+              repository: ghcr.io/onedr0p/exportarr
+              tag: v2.3.0
+            args:
+              - "sabnzbd"
+            env:
+              PORT: &metrics 9707
+              URL: http://sabnzbd:80 # "sabnzbd" is in SABNZBD__HOST_WHITELIST_ENTRIES
+              APIKEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secrets
+                    key: SABNZBD__API__APIKEY
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 128Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -68,6 +91,12 @@ spec:
         ports:
           http:
             port: *port
+          metrics:
+            port: *metrics
+    serviceMonitor:
+      app:
+        endpoints:
+          - port: metrics
     route:
       app:
         annotations:

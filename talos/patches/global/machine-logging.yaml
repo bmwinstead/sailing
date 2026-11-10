@@ -1,0 +1,13 @@
+---
+# Service logs (machined, kubelet, ...) to the node-local Alloy receiver.
+machine:
+  logging:
+    destinations:
+      - endpoint: tcp://127.0.0.1:6050/
+        format: json_lines
+---
+# Kernel log (CIFS, link, OOM messages) to the same receiver.
+apiVersion: v1alpha1
+kind: KmsgLogConfig
+name: alloy
+url: tcp://127.0.0.1:6050/

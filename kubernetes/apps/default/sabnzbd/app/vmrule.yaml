@@ -1,0 +1,23 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: sabnzbd
+spec:
+  groups:
+    - name: sabnzbd
+      rules:
+        - alert: SABnzbdPaused
+          expr: sabnzbd_paused == 1
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: SABnzbd has been paused for more than 5 minutes
+        - alert: SABnzbdExporterDown
+          expr: sabnzbd_collector_error == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: The SABnzbd exporter cannot read the SABnzbd API
