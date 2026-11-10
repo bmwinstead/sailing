@@ -148,6 +148,7 @@ spec:
     - cache=strict
     - noserverino
     - nobrl
+    - hard # retry after an SMB reconnect instead of failing in-flight writes
   csi:
     driver: smb.csi.k8s.io
     readOnly: false
