@@ -33,6 +33,19 @@ RUN cd /tmp \
     && tar -xzf "entire_linux_${TARGETARCH}.tar.gz" -C /usr/local/bin entire git-remote-entire \
     && rm -f /tmp/entire_linux_* /tmp/checksums.txt
 
+# mise, so each repo's mise.toml gives agents its own pinned toolchain (Go,
+# Node, linters). Tools install into ~/.local/share/mise on the home PVC, and
+# the shims dir on PATH makes them visible to agent shells with no activation.
+ARG MISE_VERSION=2026.11.6
+RUN case "${TARGETARCH}" in amd64) MISE_ARCH=x64 ;; *) MISE_ARCH="${TARGETARCH}" ;; esac \
+    && cd /tmp \
+    && curl -fsSLO "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/mise-v${MISE_VERSION}-linux-${MISE_ARCH}" \
+    && curl -fsSLO "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/SHASUMS256.txt" \
+    && grep " ./mise-v${MISE_VERSION}-linux-${MISE_ARCH}\$" SHASUMS256.txt | sha256sum -c - \
+    && install -m 755 "mise-v${MISE_VERSION}-linux-${MISE_ARCH}" /usr/local/bin/mise \
+    && rm -f /tmp/mise-v* /tmp/SHASUMS256.txt
+ENV PATH=/home/paseo/.local/share/mise/shims:$PATH
+
 # The base image ships no agent CLIs (see paseo.sh/docs/docker).
 RUN npm install -g @anthropic-ai/claude-code && npm cache clean --force
 
