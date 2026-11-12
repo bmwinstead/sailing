@@ -7,3 +7,5 @@ resources:
   - ./secret.sops.yaml
   - ./user-bmw-info.sops.yaml
   - ./user-bmw.yaml
+  - ./user-robyn-info.sops.yaml
+  - ./user-robyn.yaml

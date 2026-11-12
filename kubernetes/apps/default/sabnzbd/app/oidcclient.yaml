@@ -10,6 +10,8 @@ spec:
   allowedUserGroups:
     - name: admins
       namespace: auth
+    - name: family
+      namespace: auth
   secret:
     name: sabnzbd-oidc
     # Envoy Gateway reads exactly these key names.
