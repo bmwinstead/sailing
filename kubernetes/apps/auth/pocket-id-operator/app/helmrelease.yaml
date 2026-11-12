@@ -65,3 +65,6 @@ spec:
         - name: admins
           spec:
             friendlyName: Admins
+            users:
+              userRefs:
+                - name: bmw
