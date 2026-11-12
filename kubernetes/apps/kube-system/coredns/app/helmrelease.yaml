@@ -52,6 +52,20 @@ spec:
           - name: log
             configBlock: |-
               class error
+      # Resolve the home zone straight from k8s-gateway. The node resolver
+      # (router) answers AAAA for these names with SERVFAIL, so Envoy fails to
+      # resolve the OIDC issuer (id.winstead.io) and the token call gets a 503.
+      - zones:
+          - zone: winstead.io
+            scheme: dns://
+            use_tcp: true
+        port: 53
+        plugins:
+          - name: errors
+          - name: cache
+            parameters: "30"
+          - name: forward
+            parameters: . 10.20.0.4
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
