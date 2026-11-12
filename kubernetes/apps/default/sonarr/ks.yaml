@@ -6,6 +6,8 @@ metadata:
 spec:
   dependsOn:
     - name: qbittorrent
+    - name: pocket-id # PocketIDOIDCClient CRD and operator
+      namespace: auth
   interval: 1h
   path: ./kubernetes/apps/default/sonarr/app
   postBuild:
