@@ -61,3 +61,34 @@ spec:
     name: pyroscope
     access: proxy
     url: http://pyroscope.observability.svc.cluster.local:4040
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/grafana.integreatly.org/grafanadatasource_v1beta1.json
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: tempo
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  uid: tempo
+  datasource:
+    type: tempo
+    name: tempo
+    access: proxy
+    url: http://tempo.observability.svc.cluster.local:3200
+    jsonData:
+      tracesToLogsV2:
+        # Grafana resolves this by datasource name. spec.uid cannot be added to
+        # the existing loki datasource (immutable), so "loki" is its name.
+        datasourceUid: loki
+        spanStartTimeShift: -1h
+        spanEndTimeShift: 1h
+        tags:
+          - key: service.name
+            value: service_name
+        # OTLP logs keep trace_id as Loki structured metadata, not in the line.
+        filterByTraceID: false
+        filterBySpanID: false
+        customQuery: true
+        query: '{${__tags}} | trace_id="${__trace.traceId}"'
