@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aclerici38/pocket-id-operator/v0.16.2/dist/schemas/pocketidoidcclient_v1alpha1.json
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDOIDCClient
+metadata:
+  name: flux-operator
+spec:
+  callbackUrls:
+    - https://flux.${SECRET_DOMAIN}/oauth2/callback
+  pkceEnabled: true
+  allowedUserGroups:
+    - name: admins
+      namespace: auth
+    - name: family
+      namespace: auth
+  secret:
+    name: flux-operator-oidc
+    keys:
+      clientID: client-id
+      clientSecret: client-secret

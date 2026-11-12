@@ -8,6 +8,39 @@ spec:
     kind: OCIRepository
     name: flux-operator
   interval: 1h
+  # The web config file has no env var or file indirection, so Helm writes the
+  # client id and secret from the operator Secret into the chart's web config Secret.
+  valuesFrom:
+    - kind: Secret
+      name: flux-operator-oidc
+      valuesKey: client-id
+      targetPath: web.config.authentication.oauth2.clientID
+    - kind: Secret
+      name: flux-operator-oidc
+      valuesKey: client-secret
+      targetPath: web.config.authentication.oauth2.clientSecret
   values:
     serviceMonitor:
       create: true
+    web:
+      config:
+        baseURL: https://flux.${SECRET_DOMAIN}
+        authentication:
+          type: OAuth2
+          oauth2:
+            provider: OIDC
+            issuerURL: https://id.${SECRET_DOMAIN}
+            # Pocket ID: the default scopes include offline_access, so list the supported ones.
+            scopes:
+              - openid
+              - profile
+              - email
+              - groups
+      httpRoute:
+        enabled: true
+        hostnames:
+          - flux.${SECRET_DOMAIN}
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
