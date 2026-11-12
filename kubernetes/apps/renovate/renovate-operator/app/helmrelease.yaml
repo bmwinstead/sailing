@@ -13,8 +13,40 @@ spec:
   # exists yet; this HelmRelease installs cleanly but Renovate won't run
   # anything until both are created.
   interval: 1h
+  # The client id is random, so read it from the operator Secret. The chart reads
+  # the client secret from the same Secret through auth.oidc.existingSecret.
+  valuesFrom:
+    - kind: Secret
+      name: renovate-operator-oidc
+      valuesKey: client-id
+      targetPath: auth.oidc.clientId
   values:
     replicaCount: 1
+    # Web UI. The chart did not expose it before, only the webhook below.
+    route:
+      enabled: true
+      hostnames:
+        - "renovate.${SECRET_DOMAIN}"
+      parentRefs:
+        - name: envoy-internal
+          namespace: network
+          sectionName: https
+    auth:
+      oidc:
+        enabled: true
+        issuerUrl: "https://id.${SECRET_DOMAIN}"
+        existingSecret: renovate-operator-oidc
+        secretKey: client-secret
+        # Explicit, because the chart builds an http:// URL when ingress.tls is unset.
+        redirectUrl: "https://renovate.${SECRET_DOMAIN}/auth/callback"
+        additionalScopes:
+          - groups
+    authorization:
+      defaults:
+        adminGroups:
+          - admins
+        readerGroups:
+          - family
     resources:
       requests:
         cpu: 10m
