@@ -26,3 +26,10 @@ spec:
     - name: admins
       namespace: auth
 ```
+
+## Examples
+
+- Grafana is a native OIDC client. See `kubernetes/apps/observability/grafana/instance/oidcclient.yaml`.
+- SABnzbd uses an Envoy Gateway SecurityPolicy. See `kubernetes/apps/default/sabnzbd/app/oidcclient.yaml`.
+- Both clients rename the Secret keys with `spec.secret`, because Envoy needs `client-id` and `client-secret`.
+- Both Flux Kustomizations `dependsOn` `pocket-id` in the namespace `auth`.
