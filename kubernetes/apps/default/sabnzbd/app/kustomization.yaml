@@ -6,4 +6,6 @@ resources:
   - ./helmrelease.yaml
   - ./incomplete-pvc.yaml
   - ./ocirepository.yaml
+  - ./oidcclient.yaml
+  - ./securitypolicy.yaml
   - ./vmrule.yaml
