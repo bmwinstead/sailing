@@ -6,6 +6,7 @@ resources:
   - ./grafana.yaml
   - ./datasource.yaml
   - ./mutatingadmissionpolicy.yaml
+  - ./oidcclient.yaml
   - ./servicemonitor.yaml
   - ./dashboard.yaml
   - ./ai-dashboards.yaml
