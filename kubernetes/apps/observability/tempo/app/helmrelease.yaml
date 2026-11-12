@@ -16,6 +16,6 @@ spec:
     persistence:
       enabled: true
       size: 20Gi
-      storageClassName: config
+      storageClassName: longhorn
     serviceMonitor:
       enabled: true
