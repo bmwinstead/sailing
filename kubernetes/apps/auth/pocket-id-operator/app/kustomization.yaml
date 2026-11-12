@@ -5,3 +5,5 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
+  - ./user-bmw-info.sops.yaml
+  - ./user-bmw.yaml
