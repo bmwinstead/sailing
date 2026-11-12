@@ -83,7 +83,7 @@ spec:
           gethomepage.dev/group: Media
           gethomepage.dev/icon: prowlarr
           gethomepage.dev/href: "https://prowlarr.${SECRET_DOMAIN}"
-          gethomepage.dev/siteMonitor: "https://prowlarr.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "http://prowlarr.default.svc.cluster.local"
           gethomepage.dev/widget.type: prowlarr
           gethomepage.dev/widget.url: "http://prowlarr.default.svc.cluster.local"
           gethomepage.dev/widget.key: "${PROWLARR__APP__APIKEY}"
