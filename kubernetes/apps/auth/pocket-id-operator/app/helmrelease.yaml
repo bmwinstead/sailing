@@ -1,0 +1,67 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aclerici38/pocket-id-operator/v0.16.2/charts/pocket-id-operator/values.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: pocket-id-operator
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: pocket-id-operator
+  interval: 1h
+  values:
+    operator:
+      timezone: America/New_York
+    # The instance comes from the bundled subchart. The CRDs and the
+    # PocketIDInstance install in one Helm release, so no Flux ordering is needed.
+    # The top-level `instance` block is deprecated and steps aside when this is enabled.
+    pocket-id-instance:
+      instance:
+        enabled: true
+        # Not `pocket-id`: the old app-template release owns a Deployment, Service
+        # and HTTPRoute with that name until Flux prunes it.
+        name: id
+        serviceMonitor:
+          enabled: false
+        spec:
+          # Pinned to the version of the old install. Renovate does not track this field.
+          image: ghcr.io/pocket-id/pocket-id:v2.19.2
+          appUrl: "https://id.${SECRET_DOMAIN}"
+          timezone: America/New_York
+          analyticsDisabled: true
+          encryptionKey:
+            valueFrom:
+              secretKeyRef:
+                name: pocket-id-secret
+                key: ENCRYPTION_KEY
+          persistence:
+            enabled: true
+            storageClass: longhorn
+            size: 1Gi
+          resources:
+            requests:
+              cpu: 10m
+            limits:
+              memory: 256Mi
+          route:
+            enabled: true
+            annotations:
+              gethomepage.dev/enabled: "true"
+              gethomepage.dev/name: Pocket ID
+              gethomepage.dev/description: Passkey OIDC provider
+              gethomepage.dev/group: Infrastructure
+              gethomepage.dev/icon: pocket-id
+              gethomepage.dev/href: "https://id.${SECRET_DOMAIN}"
+              gethomepage.dev/siteMonitor: "https://id.${SECRET_DOMAIN}"
+            hostnames:
+              - "id.${SECRET_DOMAIN}"
+            parentRefs:
+              - name: envoy-internal
+                namespace: network
+                sectionName: https
+      userGroups:
+        # Apps map their admin role to this group. Add users in the Pocket ID UI.
+        # The operator keeps members that it did not add.
+        - name: admins
+          spec:
+            friendlyName: Admins
