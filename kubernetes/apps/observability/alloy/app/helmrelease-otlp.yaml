@@ -1,0 +1,110 @@
+---
+# OTLP receiver for apps in the cluster (gRPC 4317, HTTP 4318), reached through
+# the alloy-otlp Service. Kept separate from the DaemonSet releases because apps
+# call it through a Service, so it runs as a Deployment.
+# Metrics go to VictoriaMetrics and logs go to Loki, both over native OTLP.
+# otelcol.processor.deltatocumulative is experimental; expect to revisit it on Alloy upgrades.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: alloy-otlp
+spec:
+  chart:
+    spec:
+      chart: alloy
+      version: 1.15.0
+      sourceRef:
+        kind: HelmRepository
+        name: grafana
+  interval: 1h
+  values:
+    controller:
+      type: deployment
+      replicas: 1 # deltatocumulative keeps per-stream state, so do not scale out
+    alloy:
+      extraArgs:
+        - --stability.level=experimental
+      extraPorts:
+        - name: otlp-grpc
+          port: 4317
+          targetPort: 4317
+          protocol: TCP
+        - name: otlp-http
+          port: 4318
+          targetPort: 4318
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 20m
+        limits:
+          memory: 256Mi
+      configMap:
+        content: |
+          otelcol.receiver.otlp "default" {
+            grpc {
+              endpoint = "0.0.0.0:4317"
+            }
+            http {
+              endpoint = "0.0.0.0:4318"
+            }
+            output {
+              metrics = [otelcol.processor.deltatocumulative.default.input]
+              logs    = [otelcol.processor.batch.logs.input]
+              traces  = [otelcol.processor.batch.traces.input]
+            }
+          }
+
+          // VictoriaMetrics works best with cumulative temporality (VM docs, OpenTelemetry page).
+          otelcol.processor.deltatocumulative "default" {
+            output {
+              metrics = [otelcol.processor.batch.metrics.input]
+            }
+          }
+
+          otelcol.processor.batch "metrics" {
+            output {
+              metrics = [otelcol.exporter.otlphttp.victoriametrics.input]
+            }
+          }
+
+          // Traces: no backend exists yet. The receiver must still accept them, or
+          // clients get "Unimplemented" / 404 errors. Each batch logs one summary line
+          // and the data is then dropped. Replace the exporter when a backend is chosen.
+          otelcol.processor.batch "traces" {
+            output {
+              traces = [otelcol.exporter.debug.traces.input]
+            }
+          }
+
+          otelcol.exporter.debug "traces" {
+            verbosity = "basic"
+          }
+
+          otelcol.processor.batch "logs" {
+            output {
+              logs = [otelcol.exporter.otlphttp.loki.input]
+            }
+          }
+
+          // Alloy appends /v1/metrics, so VM receives /opentelemetry/v1/metrics.
+          otelcol.exporter.otlphttp "victoriametrics" {
+            client {
+              endpoint = "http://vmsingle-vm.observability.svc.cluster.local:8429/opentelemetry"
+            }
+          }
+
+          // Alloy appends /v1/logs, so Loki receives /otlp/v1/logs. Loki turns the
+          // resource attributes service.name and k8s.namespace.name into the index
+          // labels service_name and k8s_namespace_name by default.
+          otelcol.exporter.otlphttp "loki" {
+            client {
+              endpoint = "http://loki.observability.svc.cluster.local:3100/otlp"
+            }
+          }
+    rbac:
+      create: false
+    serviceAccount:
+      create: true
+      name: alloy-otlp
+    serviceMonitor:
+      enabled: true
