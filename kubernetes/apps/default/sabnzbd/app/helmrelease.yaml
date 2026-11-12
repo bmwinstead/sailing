@@ -107,7 +107,7 @@ spec:
           gethomepage.dev/group: Downloads
           gethomepage.dev/icon: sabnzbd
           gethomepage.dev/href: "https://sabnzbd.${SECRET_DOMAIN}"
-          gethomepage.dev/siteMonitor: "https://sabnzbd.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "http://sabnzbd.default.svc.cluster.local"
           gethomepage.dev/widget.type: sabnzbd
           gethomepage.dev/widget.url: "http://sabnzbd.default.svc.cluster.local"
           gethomepage.dev/widget.key: "${SABNZBD__API__APIKEY}"
