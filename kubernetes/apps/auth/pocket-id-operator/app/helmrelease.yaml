@@ -68,3 +68,11 @@ spec:
             users:
               userRefs:
                 - name: bmw
+        # Members may sign in to every app that lists this group in allowedUserGroups.
+        - name: family
+          spec:
+            friendlyName: Family
+            users:
+              userRefs:
+                - name: bmw
+                - name: robyn

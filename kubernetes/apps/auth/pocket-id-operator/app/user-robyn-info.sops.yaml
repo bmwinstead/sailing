@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: robyn-user-info
+  namespace: auth
+stringData:
+  username: ENC[AES256_GCM,data:CgiWuXE=,iv:tl7/ZqkKL0u7qq/jEBZpYYV6TwplpVvQwQIoy8L8XvU=,tag:217+obbw6NC5rsNcFL7AVg==,type:str]
+  firstName: ENC[AES256_GCM,data:/r8U2zo=,iv:l2cwhEsGXH+VViL19fNvFBr2va5jVyikxssxSnRCmsY=,tag:K3RJQ2WXT3VUR5xtS/aVkA==,type:str]
+  lastName: ENC[AES256_GCM,data:O654W2yiE0g=,iv:YgM9+7kcNCQZPbi9EUzGNz48PRLsRBH0KoxvwmHDNVI=,tag:5lvcj6rfmdrC4q8d93kAaA==,type:str]
+  email: ENC[AES256_GCM,data:kfI85+CKL2+ZAWOfh+GSwhWc5OFvcxbUfnhWC03JeHY=,iv:umIsgJVxP/SpW0miE1IuWrTRmJo3FUCdQWwz4+0D+2Q=,tag:FsKgmtTL5aUMjVH5XydoXw==,type:str]
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBCRGJjcTJaa2ZHcDQ3OEJn
+        bThLb0hGWDNNYjVyeWxLdDlVL1hNaFIxeURBCll4YzNaNFlyd1NvVVp3ZDVpKzFa
+        a3hMUXJUQ0ZDQXlxUVprZ3pSOG9xOUUKLS0tICtkUzJJOW45SWxQdkxxR3JtMXlq
+        TkI0UDdLR2sxVXRKd1dBd0hScmllY2sKMZor071VP+lC8reXgwM1jco3Hf9ZF6/X
+        mN8ksPYTFzrK1KZ3ziiA/Sdk9Oko1CZZNt3zvu16ulgbXINyT7aJLQ==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-11-12T03:33:18Z"
+  mac: ENC[AES256_GCM,data:qlogdSK2MuQsrhCURZvKuAwQGoikURIji830YTMHIjx82STvjeok7UgKhJqZmS6VdVjYivHnRNK30kb3YwUTZ7pQFevRyZQL1b8Vk9TDf721UYpp2SybvN5aMp5oXztwQ84TVXJEGpIC+u8t2cbycO+EHT8mv5QIXd2pkpAyK3c=,iv:YTDXQI53KmNwgF7oLuV20Xlt4vuTXHwfLElH6JAPT6k=,tag:8BlEO5BhtgtYAGVv4nFr9A==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

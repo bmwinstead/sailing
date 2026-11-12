@@ -11,6 +11,8 @@ spec:
   allowedUserGroups:
     - name: admins
       namespace: auth
+    - name: family
+      namespace: auth
   secret:
     name: grafana-oidc
     keys:
