@@ -38,6 +38,11 @@ spec:
               fallthrough in-addr.arpa ip6.arpa
           - name: autopath
             parameters: "@kubernetes"
+          # Resolve the home zone from k8s-gateway. This forward must stay before
+          # the catch-all one. Autopath sends search-domain lookups of
+          # id.winstead.io down this same chain, so a separate server block misses them.
+          - name: forward
+            parameters: winstead.io 10.20.0.4
           - name: forward
             parameters: . /etc/resolv.conf
           - name: cache
@@ -52,20 +57,6 @@ spec:
           - name: log
             configBlock: |-
               class error
-      # Resolve the home zone straight from k8s-gateway. The node resolver
-      # (router) answers AAAA for these names with SERVFAIL, so Envoy fails to
-      # resolve the OIDC issuer (id.winstead.io) and the token call gets a 503.
-      - zones:
-          - zone: winstead.io
-            scheme: dns://
-            use_tcp: true
-        port: 53
-        plugins:
-          - name: errors
-          - name: cache
-            parameters: "30"
-          - name: forward
-            parameters: . 10.20.0.4
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
