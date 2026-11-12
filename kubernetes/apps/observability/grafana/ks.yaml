@@ -23,6 +23,8 @@ metadata:
 spec:
   dependsOn:
     - name: grafana-operator
+    - name: pocket-id # PocketIDOIDCClient CRD and operator
+      namespace: auth
   interval: 1h
   path: ./kubernetes/apps/observability/grafana/instance
   prune: true
