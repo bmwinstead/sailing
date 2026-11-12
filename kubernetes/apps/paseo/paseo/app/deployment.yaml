@@ -89,8 +89,8 @@ spec:
               cpu: "250m"
               memory: "512Mi"
             limits:
-              cpu: "2"
-              memory: "6Gi"
+              cpu: "8"
+              memory: "16Gi"
       volumes:
         - name: home
           persistentVolumeClaim:
