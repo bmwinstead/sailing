@@ -1,0 +1,16 @@
+# PLACEHOLDER, not a real secret. Not listed in kustomization.yaml.
+# 1. Copy this file to user-robyn-info.sops.yaml.
+# 2. Replace every CHANGEME value.
+# 3. Encrypt: sops --encrypt --in-place kubernetes/apps/auth/pocket-id-operator/app/user-robyn-info.sops.yaml
+# 4. Add "./user-robyn-info.sops.yaml" and "./user-robyn.yaml" to kustomization.yaml in this directory.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: robyn-user-info
+  namespace: auth
+stringData:
+  username: CHANGEME
+  firstName: CHANGEME
+  lastName: CHANGEME
+  email: CHANGEME
