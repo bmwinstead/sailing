@@ -1,0 +1,25 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: cooking
+spec:
+  # The cooking Cluster needs the CloudNativePG CRDs and webhook first.
+  dependsOn:
+    - name: cloudnative-pg
+      namespace: cnpg-system
+  interval: 1h
+  path: ./
+  prune: true
+  sourceRef:
+    kind: OCIRepository
+    name: cooking
+  # Controller-level key: --sops-age-secret=sops-age (flux-instance helmrelease).
+  decryption:
+    provider: sops
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-secrets
+  wait: true
+  timeout: 5m
