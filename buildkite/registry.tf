@@ -57,19 +57,3 @@ resource "buildkite_registry" "images" {
 # https://flux-webhook.<domain><Receiver buildkite-registry status.webhookPath>,
 # set the token to BUILDKITE_WEBHOOK_TOKEN from kubernetes/components/sops/cluster-secrets.sops.yaml (sent as X-Buildkite-Token, checked by the gateway route), and select `package.created`. Flux side:
 # kubernetes/apps/flux-system/flux-instance/app/receiver-buildkite.yaml.
-
-# Canary SUT images. Separate from the Flux artifact registry so an image push
-# does not fire that registry's package.created webhook.
-resource "buildkite_registry" "sut" {
-  name        = "performancesut"
-  ecosystem   = "oci"
-  description = "Canary SUT images built by the performance pipeline"
-  emoji       = ":docker:"
-  team_ids    = [buildkite_team.registry.uuid]
-
-  oidc_policy = yamlencode([{
-    iss    = "https://agent.buildkite.com"
-    scopes = ["read_packages", "write_packages"]
-    claims = { pipeline_slug = { equals = buildkite_pipeline.performance.slug } }
-  }])
-}
