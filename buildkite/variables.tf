@@ -16,6 +16,12 @@ variable "performance_repo_url" {
   default     = "entire://aws-us-east-2.entire.io/et/winstead-io/performance"
 }
 
+variable "cooking_repo_url" {
+  description = "Native entire:// URL of the cooking repo (as shown by the Buildkite Entire connection)"
+  type        = string
+  default     = "entire://aws-us-east-2.entire.io/et/winstead-io/cooking"
+}
+
 variable "registry_name" {
   description = "Buildkite Packages OCI registry (and owning team) name. Letters and numbers only."
   type        = string

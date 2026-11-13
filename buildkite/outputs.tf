@@ -15,6 +15,10 @@ output "performance_pipeline_slug" {
   value = buildkite_pipeline.performance.slug
 }
 
+output "cooking_pipeline_slug" {
+  value = buildkite_pipeline.cooking.slug
+}
+
 output "registry_slug" {
   value = buildkite_registry.oci.slug
 }

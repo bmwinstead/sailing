@@ -21,7 +21,7 @@ resource "buildkite_registry" "oci" {
   oidc_policy = yamlencode([{
     iss    = "https://agent.buildkite.com"
     scopes = ["read_packages", "write_packages"]
-    claims = { pipeline_slug = { equals = buildkite_pipeline.performance.slug } }
+    claims = { pipeline_slug = { in = [buildkite_pipeline.performance.slug, buildkite_pipeline.cooking.slug] } }
   }])
 }
 
@@ -45,5 +45,22 @@ resource "buildkite_registry" "sut" {
     iss    = "https://agent.buildkite.com"
     scopes = ["read_packages", "write_packages"]
     claims = { pipeline_slug = { equals = buildkite_pipeline.performance.slug } }
+  }])
+}
+
+# Cooking app image. Separate from the Flux artifact registry for the same
+# reason as above. The cooking pipeline pushes the Flux artifact to the
+# sailing registry (oci), whose policy lists the cooking slug.
+resource "buildkite_registry" "cooking" {
+  name        = "cooking"
+  ecosystem   = "oci"
+  description = "Cooking app images built by the cooking pipeline"
+  emoji       = ":docker:"
+  team_ids    = [buildkite_team.registry.uuid]
+
+  oidc_policy = yamlencode([{
+    iss    = "https://agent.buildkite.com"
+    scopes = ["read_packages", "write_packages"]
+    claims = { pipeline_slug = { equals = buildkite_pipeline.cooking.slug } }
   }])
 }
