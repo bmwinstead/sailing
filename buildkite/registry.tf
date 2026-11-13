@@ -7,25 +7,51 @@ resource "buildkite_team" "registry" {
   default_member_role = "MEMBER"
 }
 
-resource "buildkite_registry" "oci" {
-  name        = var.registry_name
-  ecosystem   = "oci"
-  description = "OCI images built by the sailing pipelines"
-  emoji       = ":docker:"
-  team_ids    = [buildkite_team.registry.uuid]
+locals {
+  # Pipelines allowed to push, via OIDC. Add new projects here.
+  pushers = [buildkite_pipeline.performance, buildkite_pipeline.cooking]
 
-  # Push from the performance pipeline's jobs only, via OIDC
-  # (`buildkite-agent oidc request-token --audience https://packages.buildkite.com/<org>/<registry>`,
-  # username "buildkite"). Cluster pulls use a static read token instead,
-  # see kubernetes/apps/buildkite/secret-registry-pull.sops.yaml.example.
-  oidc_policy = yamlencode([{
-    iss    = "https://agent.buildkite.com"
-    scopes = ["read_packages", "write_packages"]
-    claims = { pipeline_slug = { equals = buildkite_pipeline.performance.slug } }
-  }])
+  # One statement per pipeline.
+  oidc_policy = yamlencode([
+    for p in local.pushers : {
+      iss    = "https://agent.buildkite.com"
+      scopes = ["read_packages", "write_packages"]
+      claims = { pipeline_slug = { equals = p.slug } }
+    }
+  ])
 }
 
-# MANUAL: the registry's `package.created` webhook is not managed here. The
+# Layout: one registry per image kind, one image per repo inside it.
+#   manifests/<repo>   k8s manifests artifact that Flux pulls (webhook below)
+#   images/<repo>      app images (<repo>-<component> if a repo has several)
+# Push from the pipelines' jobs via OIDC
+# (`buildkite-agent oidc request-token --audience https://packages.buildkite.com/<org>/<registry>`,
+# username "buildkite"). Cluster pulls use a static read token instead,
+# see kubernetes/apps/buildkite/secret-registry-pull.sops.yaml.example.
+moved {
+  from = buildkite_registry.oci
+  to   = buildkite_registry.manifests
+}
+
+resource "buildkite_registry" "manifests" {
+  name        = var.manifests_registry_name
+  ecosystem   = "oci"
+  description = "K8s manifests artifacts that Flux pulls, one image per repo"
+  emoji       = ":kubernetes:"
+  team_ids    = [buildkite_team.registry.uuid]
+  oidc_policy = local.oidc_policy
+}
+
+resource "buildkite_registry" "images" {
+  name        = var.images_registry_name
+  ecosystem   = "oci"
+  description = "App images built by the pipelines, one image per repo"
+  emoji       = ":docker:"
+  team_ids    = [buildkite_team.registry.uuid]
+  oidc_policy = local.oidc_policy
+}
+
+# MANUAL: the manifests registry's `package.created` webhook is not managed here. The
 # provider and the Buildkite API have no registry webhook support. In the UI
 # (registry > Settings > Notification Services > Webhook) set the URL to
 # https://flux-webhook.<domain><Receiver buildkite-registry status.webhookPath>,
