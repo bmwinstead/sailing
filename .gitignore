@@ -16,6 +16,9 @@ talosconfig
 /buildkite/.terraform/
 /buildkite/*.tfstate*
 /buildkite/*.tfplan
+/cloudflare/.terraform/
+/cloudflare/*.tfstate*
+/cloudflare/*.tfplan
 # Misc.
 .claude/
 .private/

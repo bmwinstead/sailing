@@ -8,6 +8,9 @@ mod? bootstrap 'bootstrap'
 [group: 'buildkite']
 mod? buildkite 'buildkite'
 
+[group: 'cloudflare']
+mod? cloudflare 'cloudflare'
+
 [group: 'kubernetes']
 mod? kube 'kubernetes'
 
