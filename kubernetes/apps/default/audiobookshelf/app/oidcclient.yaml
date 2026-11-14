@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aclerici38/pocket-id-operator/v0.16.2/dist/schemas/pocketidoidcclient_v1alpha1.json
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDOIDCClient
+metadata:
+  name: audiobookshelf
+spec:
+  # Audiobookshelf has no sub-path here, so it uses the root paths.
+  # The audiobookshelf://oauth app URI is built into the server. Do not register it.
+  callbackUrls:
+    - https://audiobookshelf.${SECRET_DOMAIN}/auth/openid/callback
+    - https://audiobookshelf.${SECRET_DOMAIN}/auth/openid/mobile-redirect
+  allowedUserGroups:
+    - name: admins
+      namespace: auth
+    - name: family
+      namespace: auth
+  secret:
+    name: audiobookshelf-oidc
+    keys:
+      clientID: client-id
+      clientSecret: client-secret
