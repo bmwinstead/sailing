@@ -53,8 +53,8 @@ spec:
               gethomepage.dev/icon: pocket-id
               gethomepage.dev/href: "https://id.${SECRET_DOMAIN}"
               gethomepage.dev/siteMonitor: "https://id.${SECRET_DOMAIN}"
-            hostnames:
-              - "id.${SECRET_DOMAIN}"
+            # No `hostnames`: the operator takes the hostname from appUrl. flux-local
+            # swaps ${SECRET_DOMAIN} for a placeholder that the chart schema rejects here.
             parentRefs:
               - name: envoy-internal
                 namespace: network
