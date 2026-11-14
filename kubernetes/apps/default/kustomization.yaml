@@ -19,6 +19,7 @@ resources:
   - ./qbittorrent/ks.yaml
   - ./qui/ks.yaml
   - ./audiobookshelf/ks.yaml
+  - ./home-assistant/ks.yaml
   - ./seerr/ks.yaml
   - ./storage/ks.yaml
   - ./recyclarr/ks.yaml
