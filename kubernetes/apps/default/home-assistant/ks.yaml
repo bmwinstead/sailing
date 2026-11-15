@@ -7,6 +7,8 @@ spec:
   dependsOn:
     - name: cloudnative-pg # Cluster CRD and webhook
       namespace: cnpg-system
+    - name: pocket-id # PocketIDOIDCClient CRD and operator
+      namespace: auth
   interval: 1h
   path: ./kubernetes/apps/default/home-assistant/app
   postBuild:
