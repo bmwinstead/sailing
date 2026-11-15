@@ -121,3 +121,6 @@ spec:
           - path: /config/configuration.yaml
             subPath: configuration.yaml
             readOnly: true
+          - path: /config/projector.py
+            subPath: projector.py
+            readOnly: true

@@ -11,11 +11,121 @@ data:
       db_url: !env_var RECORDER_DB_URL
 
     # Sony Projector has no config flow. It uses SDCP on port 53484.
+    # It gives the power switch only. ADCP (below) gives the rest.
     switch:
       - platform: sony_projector
         host: 192.168.1.203
         name: Projector
 
+    # Sony VPL-VW295ES over ADCP on port 53595. projector.py sends the commands.
+    command_line:
+      - sensor:
+          name: Projector status
+          unique_id: projector_status
+          command: python3 /config/projector.py status
+          command_timeout: 15
+          scan_interval: 30
+          value_template: "{{ value_json.power_status }}"
+          json_attributes:
+            - input
+            - picture_mode
+            - aspect
+            - light_hours
+
+    shell_command:
+      projector_set: python3 /config/projector.py set {{ cmd }} {{ value }}
+
+    template:
+      - select:
+          - name: Projector input
+            unique_id: projector_input
+            state: "{{ state_attr('sensor.projector_status', 'input') }}"
+            availability: "{{ is_state('sensor.projector_status', 'on') }}"
+            options: [hdmi1, hdmi2]
+            select_option:
+              - action: shell_command.projector_set
+                data: {cmd: input, value: "{{ option }}"}
+              - action: homeassistant.update_entity
+                target: {entity_id: sensor.projector_status}
+          - name: Projector picture mode
+            unique_id: projector_picture_mode
+            state: "{{ state_attr('sensor.projector_status', 'picture_mode') }}"
+            availability: "{{ is_state('sensor.projector_status', 'on') }}"
+            options: [cinema_film1, cinema_film2, ref, tv, photo, game, brt_cinema, brt_tv, user]
+            select_option:
+              - action: shell_command.projector_set
+                data: {cmd: picture_mode, value: "{{ option }}"}
+              - action: homeassistant.update_entity
+                target: {entity_id: sensor.projector_status}
+          - name: Projector aspect
+            unique_id: projector_aspect
+            state: "{{ state_attr('sensor.projector_status', 'aspect') }}"
+            availability: "{{ is_state('sensor.projector_status', 'on') }}"
+            options: [normal, v_stretch, zoom_1_85, zoom_2_35, squeeze]
+            select_option:
+              - action: shell_command.projector_set
+                data: {cmd: aspect, value: "{{ option }}"}
+              - action: homeassistant.update_entity
+                target: {entity_id: sensor.projector_status}
+        sensor:
+          - name: Projector light source hours
+            unique_id: projector_light_hours
+            unit_of_measurement: h
+            state_class: total_increasing
+            state: "{{ state_attr('sensor.projector_status', 'light_hours') }}"
+
     automation: !include automations.yaml
     script: !include scripts.yaml
     scene: !include scenes.yaml
+
+  projector.py: |-
+    #!/usr/bin/env python3
+    """Sony VPL-VW295ES ADCP client. Usage: projector.py status | set <command> <value> | selftest"""
+    import json
+    import re
+    import socket
+    import sys
+
+    HOST, PORT = "192.168.1.203", 53595
+    SETTABLE = {"input", "picture_mode", "aspect"}  # ponytail: add ADCP commands here as needed
+
+    def parse(reply):
+        # '"on"' -> 'on', '[{"a":1}]' -> list, 'err_*' (for example err_inactive in standby) -> None
+        return None if reply.startswith("err_") else json.loads(reply)
+
+    def talk(cmds):
+        with socket.create_connection((HOST, PORT), timeout=5) as s:
+            s.recv(64)  # NOKEY banner: the projector has no ADCP password
+            replies = []
+            for c in cmds:
+                s.sendall(c.encode() + b"\r\n")
+                replies.append(s.recv(256).decode().strip())
+        return replies
+
+    def status():
+        names = ["power_status", "input", "picture_mode", "aspect", "timer"]
+        r = dict(zip(names, (parse(x) for x in talk([n + " ?" for n in names]))))
+        hours = {k: v for d in r.pop("timer") or [] for k, v in d.items()}
+        r["light_hours"] = hours.get("light_src")
+        return r
+
+    def set_value(cmd, value):
+        if cmd not in SETTABLE or not re.fullmatch(r"[a-z0-9_]+", value):
+            sys.exit(f"bad command: {cmd} {value}")
+        reply = talk([f'{cmd} "{value}"'])[0]
+        if reply != "ok":
+            sys.exit(f"projector said {reply}")
+
+    if __name__ == "__main__":
+        a = sys.argv[1:]
+        if a == ["status"]:
+            print(json.dumps(status()))
+        elif len(a) == 3 and a[0] == "set":
+            set_value(a[1], a[2])
+        elif a == ["selftest"]:
+            assert parse('"on"') == "on"
+            assert parse("err_inactive") is None
+            assert parse('[{"a":1}]') == [{"a": 1}]
+            print("ok")
+        else:
+            sys.exit(__doc__)
