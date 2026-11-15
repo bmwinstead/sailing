@@ -41,7 +41,7 @@ data:
             unique_id: projector_input
             state: "{{ state_attr('sensor.projector_status', 'input') }}"
             availability: "{{ is_state('sensor.projector_status', 'on') }}"
-            options: [hdmi1, hdmi2]
+            options: "{{ ['hdmi1', 'hdmi2'] }}"
             select_option:
               - action: shell_command.projector_set
                 data: {cmd: input, value: "{{ option }}"}
@@ -51,7 +51,7 @@ data:
             unique_id: projector_picture_mode
             state: "{{ state_attr('sensor.projector_status', 'picture_mode') }}"
             availability: "{{ is_state('sensor.projector_status', 'on') }}"
-            options: [cinema_film1, cinema_film2, ref, tv, photo, game, brt_cinema, brt_tv, user]
+            options: "{{ ['cinema_film1', 'cinema_film2', 'ref', 'tv', 'photo', 'game', 'brt_cinema', 'brt_tv', 'user'] }}"
             select_option:
               - action: shell_command.projector_set
                 data: {cmd: picture_mode, value: "{{ option }}"}
@@ -61,7 +61,7 @@ data:
             unique_id: projector_aspect
             state: "{{ state_attr('sensor.projector_status', 'aspect') }}"
             availability: "{{ is_state('sensor.projector_status', 'on') }}"
-            options: [normal, v_stretch, zoom_1_85, zoom_2_35, squeeze]
+            options: "{{ ['normal', 'v_stretch', 'zoom_1_85', 'zoom_2_35', 'squeeze'] }}"
             select_option:
               - action: shell_command.projector_set
                 data: {cmd: aspect, value: "{{ option }}"}
