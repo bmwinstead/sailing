@@ -1,0 +1,15 @@
+name = "pkg-mail-ingest"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+JMAP_URL = "https://pkg-ingest.winstead.io"
+ACCOUNT_ID = "REPLACE_ME"
+INBOX_ID = "REPLACE_ME"
+FALLBACK_ADDR = "REPLACE_ME@example.com"
+
+# Secrets. Set each one with `wrangler secret put <NAME>`:
+#   STALWART_USER
+#   STALWART_PASSWORD
+#   CF_ACCESS_CLIENT_ID
+#   CF_ACCESS_CLIENT_SECRET
