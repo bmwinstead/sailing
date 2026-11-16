@@ -24,6 +24,29 @@ spec:
               # Donetick writes /config/selfhosted.yaml with a random JWT secret on first start. The PVC keeps it.
               DT_ENV: selfhosted
               DT_SQLITE_PATH: /donetick-data/donetick.db
+              # Env vars override /config/selfhosted.yaml (viper AutomaticEnv), so the persisted file needs no edit.
+              DT_OAUTH2_NAME: Pocket ID
+              DT_OAUTH2_AUTH_URL: https://id.${SECRET_DOMAIN}/authorize
+              DT_OAUTH2_TOKEN_URL: https://id.${SECRET_DOMAIN}/api/oidc/token
+              DT_OAUTH2_USER_INFO_URL: https://id.${SECRET_DOMAIN}/api/oidc/userinfo
+              DT_OAUTH2_REDIRECT_URL: https://donetick.${SECRET_DOMAIN}/auth/oauth2
+              # The default scopes have no "groups". Pocket ID returns the groups claim only for this scope.
+              DT_OAUTH2_SCOPES: openid,profile,email,groups
+              DT_OAUTH2_ADMIN_GROUPS: admins
+              DT_OAUTH2_CLIENT_ID:
+                valueFrom:
+                  secretKeyRef:
+                    name: donetick-oidc
+                    key: client-id
+              DT_OAUTH2_CLIENT_SECRET:
+                valueFrom:
+                  secretKeyRef:
+                    name: donetick-oidc
+                    key: client-secret
+              # SSO only. The API token for Home Assistant (secretkey header) does not use the password routes.
+              DT_DISABLE_PASSWORD_AUTH: "true"
+              # One shared circle, so the group to role mapping applies to the whole family.
+              DT_SINGLE_CIRCLE_INSTANCE: "true"
             probes:
               liveness: &probe
                 enabled: true
