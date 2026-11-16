@@ -21,15 +21,9 @@ spec:
               tag: v0.1.86@sha256:66253a32a8e8ed8c49c49418b43abe1181db23e07defe97748d2cb7508c487cd
             env:
               TZ: America/New_York
-              # Donetick writes a default config for this name on first start. The image has no prod config.
+              # Donetick writes /config/selfhosted.yaml with a random JWT secret on first start. The PVC keeps it.
               DT_ENV: selfhosted
               DT_SQLITE_PATH: /donetick-data/donetick.db
-              # Key DONETICK_JWT_SECRET must exist in the SOPS Secret app-secrets. 32 characters or more.
-              DT_JWT_SECRET:
-                valueFrom:
-                  secretKeyRef:
-                    name: app-secrets
-                    key: DONETICK_JWT_SECRET
             probes:
               liveness: &probe
                 enabled: true
@@ -93,6 +87,9 @@ spec:
         existingClaim: donetick-longhorn
         globalMounts:
           - path: /donetick-data
+            subPath: data
+          - path: /config
+            subPath: config
       tmp:
         type: emptyDir
         globalMounts:
