@@ -23,39 +23,83 @@ If the upload fails, the Worker forwards the email to `FALLBACK_ADDR`. No email 
 
 - `wrangler.toml`: Worker name, variables, and the list of secrets.
 - `src/index.js`: the Worker code.
-- `../../kubernetes/apps/default/stalwart`: the Stalwart deployment (Flux).
+- `../../kubernetes/apps/default/stalwart`: the Stalwart deployment and its CNPG database (Flux).
 
-## 1. Start Stalwart and do the first-run setup
+## 1. Start Stalwart and set it up
 
-Flux deploys Stalwart from `kubernetes/apps/default/stalwart`. The image is Stalwart v1.1.1.
-The first start has no `config.json`. Stalwart then runs in bootstrap mode.
-Bootstrap mode serves only the setup wizard on port 8080.
+Flux deploys Stalwart v1.1.1 from `kubernetes/apps/default/stalwart`.
+Stalwart keeps all data in a CloudNativePG (CNPG) Postgres cluster named `stalwart-db`. There is no config volume.
+The HelmRelease holds a small `config.json`. It describes only the data store.
+The database password comes from the Secret `stalwart-db-app`, which CNPG creates.
+The blob store, the search store, and the in-memory store use their defaults.
+Blobs and search data stay in Postgres. The in-memory store stays in the process.
 
-1. Wait until the pod is ready:
+Because `config.json` exists, Stalwart does not start in bootstrap mode.
+There is no setup wizard and no temporary password in the logs.
+On the first start, Stalwart fills the empty database with default settings and listeners.
+No admin account exists yet. The recovery admin credential in step 1.1 is the first sign-in.
+
+### 1.1 Read the admin password
+
+The Secret `stalwart-admin` is in git, encrypted with SOPS (`kubernetes/apps/default/stalwart/app/secret.sops.yaml`).
+Its one key is `STALWART_RECOVERY_ADMIN`. The value format is `admin:PASSWORD`.
+Read the password:
+
+```sh
+sops -d --extract '["stringData"]["STALWART_RECOVERY_ADMIN"]' kubernetes/apps/default/stalwart/app/secret.sops.yaml
+```
+
+The HelmRelease reads this Secret as optional. This credential works even when the directory has no admin.
+Remove the Secret after you make a real admin account (step 1.3).
+If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n default rollout restart deploy/stalwart`
+
+### 1.2 Check the start
+
+1. Wait until the database is healthy:
+   `kubectl --kubeconfig=kubeconfig -n default get cluster stalwart-db`
+2. Wait until the pod is ready:
    `kubectl --kubeconfig=kubeconfig -n default get pods -l app.kubernetes.io/name=stalwart`
-2. Find the temporary admin password in the logs:
-   `kubectl --kubeconfig=kubeconfig -n default logs deploy/stalwart | grep -A8 'bootstrap mode'`
-   The password changes at each bootstrap start. Use the newest block.
-3. Open the wizard at `https://stalwart.winstead.io/admin`. Sign in as `admin`.
-   This address is an internal HTTPRoute (LAN only). You do not need a port-forward.
-4. Finish the wizard. Use the internal directory and the domain `pkg.winstead.io`.
-   The wizard writes `config.json` to `/etc/stalwart`. It shows the password of `admin@pkg.winstead.io` once. Save it.
-5. Restart the pod. Stalwart stays in bootstrap mode until a restart:
-   `kubectl --kubeconfig=kubeconfig -n default rollout restart deploy/stalwart`
-6. Open `https://stalwart.winstead.io/admin` again. Sign in with the admin account from the wizard.
-   If the sign-in page fails, the UI may need its public URL set to `https://stalwart.winstead.io`.
-   If it still fails, use the JMAP calls in step 2 with `curl`.
-7. Create the account `packages@pkg.winstead.io`.
-8. Create two app passwords for that account if Stalwart supports them. One is for the Worker. One is for Home Assistant.
+3. If the pod does not start, read the logs:
+   `kubectl --kubeconfig=kubeconfig -n default logs deploy/stalwart`
+   A bad database password or host shows as a `Startup failed` error.
+
+### 1.3 Sign in and make the accounts
+
+1. Open `https://stalwart.winstead.io/admin`. This is an internal HTTPRoute (LAN only).
+   Sign in as `admin` with the password from step 1.1.
+2. If the sign-in page fails, use JMAP with `curl` and the same credential (step 2 shows the calls).
+   The old bootstrap mode needed a port-forward to `http://localhost:8080/admin`. This mode may not accept it.
+   The HelmRelease sets `STALWART_PUBLIC_URL` so that Stalwart trusts the host `stalwart.winstead.io`.
+3. Create the domain `pkg.winstead.io`.
+4. Create the account `packages@pkg.winstead.io`.
+5. Create two app passwords for that account if Stalwart supports them. One is for the Worker. One is for Home Assistant.
    If Stalwart does not support them, use the account password.
-9. Disable the SMTP, POP3, and ManageSieve listeners. Keep the HTTP listener on port 8080 and the IMAPS listener on port 993.
+6. Create a personal account with the Admin role. Sign in with it.
+   Then delete the Secret `stalwart-admin`, take it out of the kustomization, and restart the pod.
+7. Disable the SMTP, POP3, and ManageSieve listeners. Keep the HTTP listener on port 8080 and the IMAPS listener on port 993.
    The Kubernetes Service exposes only these two ports. Disable the other listeners to keep the config clean.
 
-Notes:
+Check that the HTTP listener on port 8080 still exists after you change the listeners. The Kubernetes probes and the tunnel use it.
 
-- Do not set `STALWART_RECOVERY_ADMIN` in the manifest. It would put a fixed credential in git.
-  The temporary password in the logs is enough for one setup.
-- Check that the HTTP listener on port 8080 still exists after the restart. The Kubernetes probes and the tunnel use it.
+### 1.4 Sign in with Pocket ID (optional)
+
+The Pocket ID client `stalwart` is public and uses PKCE.
+Its callback is `https://stalwart.winstead.io/admin/oauth/callback`. The Flux app creates it.
+In Stalwart, set up two things:
+
+1. Add an OIDC directory that points to the Pocket ID issuer. The WebUI finds the identity provider from this directory.
+2. Open the Application object `Stalwart Web Interface`. Set the OAuth client ID to `stalwart` and the OAuth scopes to `profile email`.
+
+Not verified: I did not check the menu path of the Application object in the WebUI.
+I did not test the Pocket ID sign-in.
+
+### 1.5 Database notes
+
+- The link to Postgres uses TLS but does not check the server certificate (`allowInvalidCerts`).
+  CNPG signs the certificate with its own CA. Stalwart has no setting for a CA file, so it cannot check that CA.
+  The traffic stays inside the cluster.
+- `/var/lib/stalwart` is an empty directory that the pod loses at each restart. Stalwart keeps no state in it.
+- To change the data store, edit `config.json` in the HelmRelease. Stalwart restarts on the change.
 
 ## 2. Get the account ID and the inbox ID
 
@@ -162,5 +206,5 @@ Install Mail and Packages with HACS. Use these settings:
 ## Follow-ups
 
 - Add a CronJob that deletes old mail. Use JMAP `Email/query` for mail older than 30 days. Then use `Email/set` with `destroy`.
-- Exclude the Stalwart data volume from backups, or decide how to keep it.
+- Decide how to back up the CNPG cluster `stalwart-db`. It holds all mail and all Stalwart settings.
 - Add a Home Assistant alert when no mail arrives for several days.

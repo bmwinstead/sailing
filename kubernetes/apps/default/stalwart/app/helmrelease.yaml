@@ -12,7 +12,7 @@ spec:
   values:
     controllers:
       stalwart:
-        # RocksDB has one writer and the volume is ReadWriteOnce, so stop the old pod before the new one starts.
+        # One Stalwart node, no cluster coordinator. Stop the old pod before the new one starts.
         strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
@@ -23,6 +23,21 @@ spec:
               tag: v1.1.1@sha256:5ebdf474b237161742fe4309396af4ae8797c938e8e6eb7e2d4837332c4f9851
             env:
               TZ: America/New_York
+              # The WebUI sign-in only trusts hosts that Stalwart knows. This makes the Envoy route a trusted host.
+              STALWART_PUBLIC_URL: https://stalwart.${SECRET_DOMAIN}
+              # Read by config.json (authSecret). CNPG creates this Secret.
+              STALWART_DB_PASSWORD:
+                valueFrom:
+                  secretKeyRef:
+                    name: stalwart-db-app
+                    key: password
+            # Optional admin sign-in. The owner creates this Secret with SOPS.
+            # The Secret has one key, STALWART_RECOVERY_ADMIN, with the value admin:<password>.
+            # The chart schema does not allow optional on a secretKeyRef, so this uses envFrom.
+            envFrom:
+              - secretRef:
+                  name: stalwart-admin
+                  optional: true
             probes:
               liveness: &probe
                 enabled: true
@@ -92,12 +107,38 @@ spec:
           - backendRefs:
               - identifier: app
                 port: *http
+    configMaps:
+      config:
+        data:
+          # Data store only. Stalwart keeps all other settings in this database.
+          # The blob store, the search store, and the in-memory store use their defaults:
+          # blobs and search live in this database, and the in-memory store stays in the process.
+          # CNPG always serves TLS with its own CA. Stalwart has no field for a CA file,
+          # so it encrypts the link and does not check the server certificate.
+          config.json: |-
+            {
+              "@type": "PostgreSql",
+              "host": "stalwart-db-rw.default.svc.cluster.local",
+              "port": 5432,
+              "database": "stalwart",
+              "authUsername": "stalwart",
+              "authSecret": {
+                "@type": "EnvironmentVariable",
+                "variableName": "STALWART_DB_PASSWORD"
+              },
+              "useTls": true,
+              "allowInvalidCerts": true
+            }
     persistence:
       config:
-        existingClaim: stalwart-config
+        type: configMap
+        identifier: config
         globalMounts:
-          - path: /etc/stalwart
+          - path: /etc/stalwart/config.json
+            subPath: config.json
+            readOnly: true
+      # Stalwart keeps no state here when the data store is PostgreSQL. It is scratch space only.
       data:
-        existingClaim: stalwart-data
+        type: emptyDir
         globalMounts:
           - path: /var/lib/stalwart
