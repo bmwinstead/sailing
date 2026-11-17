@@ -37,34 +37,21 @@ Blobs and search data stay in Postgres. The in-memory store stays in the process
 Because `config.json` exists, Stalwart does not start in bootstrap mode.
 There is no setup wizard and no temporary password in the logs.
 On the first start, Stalwart fills the empty database with default settings and listeners.
-No admin account exists yet. You must give Stalwart a recovery admin credential.
+No admin account exists yet. The recovery admin credential in step 1.1 is the first sign-in.
 
-### 1.1 Create the admin Secret
+### 1.1 Read the admin password
 
-The Secret is not in git. Make it with SOPS.
-Choose a long password. The value format is `admin:PASSWORD`.
+The Secret `stalwart-admin` is in git, encrypted with SOPS (`kubernetes/apps/default/stalwart/app/secret.sops.yaml`).
+Its one key is `STALWART_RECOVERY_ADMIN`. The value format is `admin:PASSWORD`.
+Read the password:
 
-1. Create the file:
+```sh
+sops -d --extract '["stringData"]["STALWART_RECOVERY_ADMIN"]' kubernetes/apps/default/stalwart/app/secret.sops.yaml
+```
 
-   ```sh
-   cat > kubernetes/apps/default/stalwart/app/secret.sops.yaml <<'EOF'
-   apiVersion: v1
-   kind: Secret
-   metadata:
-     name: stalwart-admin
-   stringData:
-     STALWART_RECOVERY_ADMIN: admin:PASSWORD
-   EOF
-   sops --encrypt --in-place kubernetes/apps/default/stalwart/app/secret.sops.yaml
-   ```
-
-2. Add `./secret.sops.yaml` to `kubernetes/apps/default/stalwart/app/kustomization.yaml`.
-3. Commit, push, and run `just kube reconcile`.
-4. Restart the pod so that it reads the new Secret:
-   `kubectl --kubeconfig=kubeconfig -n default rollout restart deploy/stalwart`
-
-The HelmRelease reads this Secret as optional. Stalwart starts without it, but you cannot sign in.
-This credential works even when the directory has no admin. Remove the Secret after you make a real admin account (step 1.3).
+The HelmRelease reads this Secret as optional. This credential works even when the directory has no admin.
+Remove the Secret after you make a real admin account (step 1.3).
+If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n default rollout restart deploy/stalwart`
 
 ### 1.2 Check the start
 
