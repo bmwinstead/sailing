@@ -42,7 +42,8 @@ No admin account exists yet. The recovery admin credential in step 1.1 is the fi
 ### 1.1 Read the admin password
 
 The Secret `stalwart-admin` is in git, encrypted with SOPS (`kubernetes/apps/default/stalwart/app/secret.sops.yaml`).
-Its one key is `STALWART_RECOVERY_ADMIN`. The value format is `admin:PASSWORD`.
+Its key `STALWART_RECOVERY_ADMIN` has the value format `admin:PASSWORD`.
+Its keys `STALWART_USER` (`admin`) and `STALWART_PASSWORD` (`PASSWORD`) hold the same pair for the `stalwart-config` Job (step 1.4).
 Read the password:
 
 ```sh
@@ -50,7 +51,7 @@ sops -d --extract '["stringData"]["STALWART_RECOVERY_ADMIN"]' kubernetes/apps/de
 ```
 
 The HelmRelease reads this Secret as optional. This credential works even when the directory has no admin.
-Remove the Secret after you make a real admin account (step 1.3).
+Keep the Secret. The `stalwart-config` Job signs in with it.
 If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n default rollout restart deploy/stalwart`
 
 ### 1.2 Check the start
@@ -72,26 +73,102 @@ If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n d
    The HelmRelease sets `STALWART_PUBLIC_URL` so that Stalwart trusts the host `stalwart.winstead.io`.
 3. Create the domain `pkg.winstead.io`.
 4. Create the account `packages@pkg.winstead.io`.
-5. Create two app passwords for that account if Stalwart supports them. One is for the Worker. One is for Home Assistant.
-   If Stalwart does not support them, use the account password.
-6. Create a personal account with the Admin role. Sign in with it.
-   Then delete the Secret `stalwart-admin`, take it out of the kustomization, and restart the pod.
+5. Create two app passwords for that account. One is for the Worker. One is for Home Assistant.
+   Do not use the account password. It stops working when Pocket ID becomes the default directory (step 1.4).
+6. Make your personal account an admin (step 1.4). Keep the Secret `stalwart-admin`.
 7. Disable the SMTP, POP3, and ManageSieve listeners. Keep the HTTP listener on port 8080 and the IMAPS listener on port 993.
    The Kubernetes Service exposes only these two ports. Disable the other listeners to keep the config clean.
 
 Check that the HTTP listener on port 8080 still exists after you change the listeners. The Kubernetes probes and the tunnel use it.
 
-### 1.4 Sign in with Pocket ID (optional)
+### 1.4 Sign in with Pocket ID
 
-The Pocket ID client `stalwart` is public and uses PKCE.
-Its callback is `https://stalwart.winstead.io/admin/oauth/callback`. The Flux app creates it.
-In Stalwart, set up two things:
+Stalwart keeps the sign-in settings in its database, not in `config.json`. Flux writes them from git.
+The Flux Kustomization `stalwart-config` runs the Job `stalwart-config`.
+The Job runs `stalwart-cli apply` with the plan `kubernetes/apps/default/stalwart/config/plan.ndjson`.
+The Pocket ID client `stalwart` is public and uses PKCE. The `stalwart` Flux app creates it.
 
-1. Add an OIDC directory that points to the Pocket ID issuer. The WebUI finds the identity provider from this directory.
-2. Open the Application object `Stalwart Web Interface`. Set the OAuth client ID to `stalwart` and the OAuth scopes to `profile email`.
+CAUTION: The OIDC directory becomes the default directory for all domains.
+After the Job runs, an account password does not work for IMAP, JMAP, or the WebUI.
+App passwords, API keys, and the recovery admin password continue to work. Stalwart checks them before the directory.
 
-Not verified: I did not check the menu path of the Application object in the WebUI.
-I did not test the Pocket ID sign-in.
+The plan does these steps in this order:
+
+1. Create or update the OIDC directory `Pocket ID`. Its issuer is `https://id.winstead.io` and its accepted audience is `stalwart`.
+2. Set this directory as `directoryId` on the `Authentication` object. Without this link, the WebUI does not find Pocket ID.
+3. Create or update the internal OAuth client `stalwart`. The recovery admin signs in to the WebUI with it.
+4. Set the OAuth client ID `stalwart` and the scopes `profile email` on the Application `Stalwart Web Interface`.
+5. Reload the settings and the web applications. Stalwart does not restart.
+
+The plan finds each object by its description or client ID. You can run the plan again. It does not make duplicates.
+If no Application has the description `Stalwart Web Interface`, the Job fails.
+
+The Job signs in as the recovery admin with the keys `STALWART_USER` and `STALWART_PASSWORD` of the Secret `stalwart-admin`.
+
+Check the Job:
+
+```sh
+flux --kubeconfig=kubeconfig -n default get ks stalwart-config
+kubectl --kubeconfig=kubeconfig -n default get job stalwart-config
+kubectl --kubeconfig=kubeconfig -n default logs job/stalwart-config
+```
+
+- The Job can start before Stalwart is ready. Then it fails, waits longer each time, and tries again (20 times at most).
+- `CreateContainerConfigError` on the pod means that the Secret has no `STALWART_USER` or `STALWART_PASSWORD` key.
+- A failed `ReloadSettings` step means that Stalwart cannot load a setting.
+  For example, Stalwart cannot read `https://id.winstead.io/.well-known/openid-configuration`.
+  Read the Stalwart log: `kubectl --kubeconfig=kubeconfig -n default logs deploy/stalwart`
+
+If you change the plan:
+
+1. Keep one JSON object on each line.
+2. Optional: check the plan with a dry run. The dry run needs a port-forward and the `stalwart-cli` binary.
+
+   ```sh
+   kubectl --kubeconfig=kubeconfig -n default port-forward svc/stalwart 8080:8080 &
+   STALWART_URL=http://localhost:8080 STALWART_USER=admin STALWART_PASSWORD='PASSWORD' \
+     stalwart-cli apply --file kubernetes/apps/default/stalwart/config/plan.ndjson --dry-run
+   ```
+
+3. Commit and push. The ConfigMap name has a hash of the plan, so the Job changes. Flux deletes the old Job and starts a new one (`force: true`).
+4. Check the new Job log.
+
+To run the same plan again, for example after a database reset, delete the Job. Flux makes it again:
+
+```sh
+kubectl --kubeconfig=kubeconfig -n default delete job stalwart-config
+flux --kubeconfig=kubeconfig -n default reconcile ks stalwart-config
+```
+
+#### First sign-in and the admin role
+
+Stalwart makes the account at the first Pocket ID sign-in.
+The account address is the Pocket ID user name (`preferred_username`) and `@winstead.io`.
+The display name comes from the `name` claim.
+
+1. Make sure that the domain `winstead.io` exists in Stalwart. The plan does not make it.
+   Without the domain, the sign-in fails with `Account domain does not exist or has been disabled`.
+   Make it as the recovery admin in the WebUI, or with the CLI: `stalwart-cli create Domain --field name=winstead.io`
+2. Open `https://stalwart.winstead.io/admin`. Type `USERNAME@winstead.io`. The WebUI sends you to Pocket ID.
+3. Sign in at Pocket ID. Stalwart makes the account with the role User.
+4. Sign out. Sign in as `admin` with the password from step 1.1. The recovery admin always uses the Stalwart sign-in page.
+5. Set the role of the new account to Administrator. In the WebUI, open the account. With the CLI:
+
+   ```sh
+   stalwart-cli query Account
+   stalwart-cli update Account ACCOUNT_ID --json '{"roles":{"@type":"Admin"}}'
+   ```
+
+6. Sign out. Sign in again with Pocket ID.
+
+Pocket ID groups do not give a Stalwart role. Stalwart uses groups only for shared access, and the plan does not read the `groups` claim.
+Later sign-ins keep the role. A sign-in updates only the display name, the aliases, and the groups of the account.
+
+The Pocket ID client allows only the `/admin` callback. The Account Manager at `/account` cannot sign in with Pocket ID.
+To use it, add `https://stalwart.winstead.io/account/oauth/callback` to the client in `kubernetes/apps/default/stalwart/app/oidcclient.yaml`.
+
+Verified: I read the Stalwart v1.1.1 and Pocket ID v2.19.2 source. I ran a CLI 2.0.0 dry run against the v1.1.1 schema.
+Not verified: I did not run the Job against a live Stalwart. I did not test the Pocket ID sign-in, the role change, or the WebUI menu path.
 
 ### 1.5 Database notes
 
@@ -103,7 +180,7 @@ I did not test the Pocket ID sign-in.
 
 ## 2. Get the account ID and the inbox ID
 
-Get the account ID. Use the Worker account and its password:
+Get the account ID. Use the Worker account and its app password:
 
 ```sh
 curl -s -u 'packages@pkg.winstead.io:PASSWORD' https://stalwart.winstead.io/jmap/session | jq '.primaryAccounts'
