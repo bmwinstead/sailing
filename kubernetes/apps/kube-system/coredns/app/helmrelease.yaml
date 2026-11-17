@@ -41,8 +41,14 @@ spec:
           # Resolve the home zone from k8s-gateway. This forward must stay before
           # the catch-all one. Autopath sends search-domain lookups of
           # id.winstead.io down this same chain, so a separate server block misses them.
+          # Ask the router only when k8s-gateway answers NXDOMAIN. The router holds LAN-only names such
+          # as nas.winstead.io, which the csi-smb controller needs. Do not enable fallthrough in
+          # k8s-gateway for this: the router forwards the zone back to k8s-gateway and queries loop.
           - name: forward
-            parameters: winstead.io 10.20.0.4
+            parameters: winstead.io 10.20.0.4 10.20.0.1
+            configBlock: |-
+              policy sequential
+              next NXDOMAIN
           - name: forward
             parameters: . /etc/resolv.conf
           - name: cache
