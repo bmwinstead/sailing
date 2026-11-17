@@ -12,6 +12,28 @@ spec:
     fullnameOverride: k8s-gateway
     domain: "${SECRET_DOMAIN}"
     ttl: 1
+    # Pass names that k8s-gateway does not serve (for example nas.${SECRET_DOMAIN}) to the router.
+    # Do not use the chart default "forward . /etc/resolv.conf": it points at CoreDNS, which sends
+    # ${SECRET_DOMAIN} back to this pod and loops.
+    fallthrough:
+      enabled: true
+      zones:
+        - "${SECRET_DOMAIN}"
+    # The list replaces the chart default. Keep the same plugins and change only the forward target.
+    extraZonePlugins:
+      - name: log
+      - name: errors
+      - name: health
+        configBlock: |-
+          lameduck 5s
+      - name: ready
+      - name: prometheus
+        parameters: 0.0.0.0:9153
+      - name: forward
+        parameters: . 10.20.0.1
+      - name: loop
+      - name: reload
+      - name: loadbalance
     service:
       type: LoadBalancer
       port: 53
