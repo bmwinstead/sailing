@@ -24,3 +24,4 @@ resources:
   - ./seerr/ks.yaml
   - ./storage/ks.yaml
   - ./recyclarr/ks.yaml
+  - ./stalwart/ks.yaml
