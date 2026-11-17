@@ -36,15 +36,15 @@ Bootstrap mode serves only the setup wizard on port 8080.
 2. Find the temporary admin password in the logs:
    `kubectl --kubeconfig=kubeconfig -n default logs deploy/stalwart | grep -A8 'bootstrap mode'`
    The password changes at each bootstrap start. Use the newest block.
-3. Open the wizard:
-   `kubectl --kubeconfig=kubeconfig -n default port-forward svc/stalwart 8080:8080`
-   Then open `http://localhost:8080/admin`. Sign in as `admin`.
+3. Open the wizard at `https://stalwart.winstead.io/admin`. Sign in as `admin`.
+   This address is an internal HTTPRoute (LAN only). You do not need a port-forward.
 4. Finish the wizard. Use the internal directory and the domain `pkg.winstead.io`.
    The wizard writes `config.json` to `/etc/stalwart`. It shows the password of `admin@pkg.winstead.io` once. Save it.
 5. Restart the pod. Stalwart stays in bootstrap mode until a restart:
    `kubectl --kubeconfig=kubeconfig -n default rollout restart deploy/stalwart`
-6. Open the admin UI again with the port-forward. Sign in with the admin account from the wizard.
-   If the sign-in page fails, the UI needs its configured HTTPS hostname. Use the JMAP calls in step 2 with `curl` instead.
+6. Open `https://stalwart.winstead.io/admin` again. Sign in with the admin account from the wizard.
+   If the sign-in page fails, the UI may need its public URL set to `https://stalwart.winstead.io`.
+   If it still fails, use the JMAP calls in step 2 with `curl`.
 7. Create the account `packages@pkg.winstead.io`.
 8. Create two app passwords for that account if Stalwart supports them. One is for the Worker. One is for Home Assistant.
    If Stalwart does not support them, use the account password.
@@ -59,16 +59,10 @@ Notes:
 
 ## 2. Get the account ID and the inbox ID
 
-Open the port-forward:
-
-```sh
-kubectl --kubeconfig=kubeconfig -n default port-forward svc/stalwart 8080:8080
-```
-
 Get the account ID. Use the Worker account and its password:
 
 ```sh
-curl -s -u 'packages@pkg.winstead.io:PASSWORD' http://localhost:8080/jmap/session | jq '.primaryAccounts'
+curl -s -u 'packages@pkg.winstead.io:PASSWORD' https://stalwart.winstead.io/jmap/session | jq '.primaryAccounts'
 ```
 
 Copy the value of `urn:ietf:params:jmap:mail`. This value is `ACCOUNT_ID`.
@@ -76,7 +70,7 @@ Copy the value of `urn:ietf:params:jmap:mail`. This value is `ACCOUNT_ID`.
 Get the inbox ID:
 
 ```sh
-curl -s -u 'packages@pkg.winstead.io:PASSWORD' http://localhost:8080/jmap/ \
+curl -s -u 'packages@pkg.winstead.io:PASSWORD' https://stalwart.winstead.io/jmap/ \
   -H 'content-type: application/json' \
   -d '{"using":["urn:ietf:params:jmap:core","urn:ietf:params:jmap:mail"],
        "methodCalls":[["Mailbox/get",{"accountId":"ACCOUNT_ID"},"0"]]}' \
