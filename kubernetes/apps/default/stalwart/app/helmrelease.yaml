@@ -78,6 +78,20 @@ spec:
             port: *http
           imaps:
             port: 993
+    route:
+      app:
+        # LAN only. The admin UI and JMAP are not exposed to the internet by this route.
+        # The Cloudflare tunnel keeps its own /jmap route for the Email Worker.
+        hostnames:
+          - "stalwart.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *http
     persistence:
       config:
         existingClaim: stalwart-config
