@@ -89,7 +89,6 @@ apps-secrets:
     just log info "Applying secrets for apps"
     for secret in \
         "{{ source_directory() }}/github-deploy-key.sops.yaml" \
-        "{{ source_directory() }}/sops-age.sops.yaml" \
         "{{ source_directory() }}/sops-aws.sops.yaml" \
         "{{ kubernetes_dir }}/components/sops/cluster-secrets.sops.yaml"
     do
