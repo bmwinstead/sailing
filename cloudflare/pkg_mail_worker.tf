@@ -1,5 +1,5 @@
 # The Email Worker in ../workers/pkg-mail-ingest. OpenTofu is the deploy path.
-# The values come from SSM. See ../workers/pkg-mail-ingest/README.md for who writes each one.
+# Most values come from SSM. The Access service token comes from pkg_mail_access.tf. See ../workers/pkg-mail-ingest/README.md for who writes each one.
 
 locals {
   pkg_mail_worker_name = "pkg-mail-ingest"
@@ -9,8 +9,6 @@ locals {
     "pkg-mail-worker-password",
     "pkg-mail-account-id",
     "pkg-mail-inbox-id",
-    "pkg-mail-access-client-id",
-    "pkg-mail-access-client-secret",
     "pkg-mail-fallback-addr",
   ])
 }
@@ -32,8 +30,8 @@ resource "cloudflare_workers_script" "pkg_mail_ingest" {
 
   bindings = [
     { name = "ACCOUNT_ID", type = "plain_text", text = data.aws_ssm_parameter.pkg_mail["pkg-mail-account-id"].value },
-    { name = "CF_ACCESS_CLIENT_ID", type = "secret_text", text = data.aws_ssm_parameter.pkg_mail["pkg-mail-access-client-id"].value },
-    { name = "CF_ACCESS_CLIENT_SECRET", type = "secret_text", text = data.aws_ssm_parameter.pkg_mail["pkg-mail-access-client-secret"].value },
+    { name = "CF_ACCESS_CLIENT_ID", type = "secret_text", text = cloudflare_zero_trust_access_service_token.pkg_mail_worker.client_id },
+    { name = "CF_ACCESS_CLIENT_SECRET", type = "secret_text", text = cloudflare_zero_trust_access_service_token.pkg_mail_worker.client_secret },
     { name = "FALLBACK_ADDR", type = "plain_text", text = data.aws_ssm_parameter.pkg_mail["pkg-mail-fallback-addr"].value },
     { name = "INBOX_ID", type = "plain_text", text = data.aws_ssm_parameter.pkg_mail["pkg-mail-inbox-id"].value },
     { name = "JMAP_URL", type = "plain_text", text = var.pkg_mail_jmap_url },
@@ -47,7 +45,7 @@ data "cloudflare_zone" "main" {
 }
 
 # This rule sends mail for the package address to the Worker.
-# The Email Routing setup for the subdomain and the fallback destination address stay manual.
+# The Email Routing setup for the subdomain stays manual. The destination address is in pkg_mail_access.tf.
 resource "cloudflare_email_routing_rule" "pkg_mail" {
   zone_id = data.cloudflare_zone.main.zone_id
   name    = local.pkg_mail_worker_name

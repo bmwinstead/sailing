@@ -11,7 +11,8 @@ Shipper or Proton filter
   -> Cloudflare Email Routing
   -> Email Worker pkg-mail-ingest
   -> HTTPS to pkg-ingest.winstead.io (Cloudflare Access service token)
-  -> Cloudflare Tunnel (route /jmap only)
+  -> Cloudflare Tunnel (wildcard route to envoy-external)
+  -> HTTPRoute pkg-ingest (path /jmap only)
   -> Stalwart (JMAP, port 8080, namespace default)
   -> Home Assistant (Mail and Packages) over IMAPS, port 993
 ```
@@ -79,7 +80,7 @@ If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n d
 7. Disable the SMTP, POP3, and ManageSieve listeners. Keep the HTTP listener on port 8080 and the IMAPS listener on port 993.
    The Kubernetes Service exposes only these two ports. Disable the other listeners to keep the config clean.
 
-Check that the HTTP listener on port 8080 still exists after you change the listeners. The Kubernetes probes and the tunnel use it.
+Check that the HTTP listener on port 8080 still exists after you change the listeners. The Kubernetes probes and the Envoy routes use it.
 
 ### 1.4 Sign in with Pocket ID
 
@@ -200,45 +201,12 @@ curl -s -u 'packages@pkg.winstead.io:PASSWORD' https://stalwart.winstead.io/jmap
 
 This value is `INBOX_ID`. Put both values in `wrangler.toml`.
 
-## 3. Add the Tunnel route
-
-The `cloudflare-tunnel` app runs cloudflared with `TUNNEL_TOKEN` and the command `tunnel run`.
-This is a remotely managed tunnel. The `ingress:` list in the cluster ConfigMap is not used.
-Add the route in the Cloudflare dashboard. Do not edit the cluster.
-
-1. Open Cloudflare Zero Trust. Go to Networks > Tunnels. Select the cluster tunnel.
-2. Open Published application routes. Add a route:
-   - Hostname: `pkg-ingest.winstead.io`
-   - Path: `^/jmap(/.*)?$`
-   - Service: `http://stalwart.default.svc.cluster.local:8080`
-3. Put this route above any wildcard route for `*.winstead.io`. The tunnel matches routes in order.
-
-Cloudflare creates the DNS record for a published route. Do not add the record by hand.
-Only `/jmap` is routed. The admin UI is never reachable through the tunnel.
-
-Not verified: I could not confirm that the dashboard accepts a regex in the Path field.
-The cloudflared `ingress` rules use a regex for `path`. If the dashboard rejects the value, use `/jmap`.
-After you save the route, run this test. The first call must return 401 or 403 from Access. The admin path must not reach Stalwart.
-
-```sh
-curl -i https://pkg-ingest.winstead.io/jmap/session
-curl -i https://pkg-ingest.winstead.io/admin
-```
-
-## 4. Protect the route with Cloudflare Access
-
-1. In Zero Trust, go to Access > Service credentials > Service Tokens. Create a token.
-   Copy the Client ID and the Client Secret. The secret shows once.
-2. Go to Access > Applications. Add a Self-hosted application.
-   - Destination hostname: `pkg-ingest.winstead.io`
-3. Add one policy. Set the action to Service Auth. Include the service token from step 1.
-4. Save the application.
-
-## 5. Deploy the Worker with OpenTofu
+## 3. Deploy with OpenTofu
 
 OpenTofu deploys the Worker. The module is `cloudflare/` (file `pkg_mail_worker.tf`). Do not run `wrangler deploy`.
 OpenTofu uploads `src/index.js`, and it sets the variables and the secrets as Worker bindings.
-It reads each value from AWS SSM Parameter Store (path `/sailing/tofu/`).
+It reads most values from AWS SSM Parameter Store (path `/sailing/tofu/`).
+The Cloudflare Access service token and application come from `cloudflare/pkg_mail_access.tf`. You do not make them by hand.
 The `wrangler.toml` file is for local development only. Its `REPLACE_ME` values are placeholders. OpenTofu does not read them.
 OpenTofu reads only `compatibility_date` from this file.
 
@@ -247,17 +215,14 @@ OpenTofu reads only `compatibility_date` from this file.
 | `pkg-mail-worker-password` | `STALWART_PASSWORD` (secret) | Automatic. The Stalwart Job writes the app password. |
 | `pkg-mail-account-id` | `ACCOUNT_ID` | Automatic. The Stalwart Job writes it. |
 | `pkg-mail-inbox-id` | `INBOX_ID` | Automatic. The Stalwart Job writes it. |
-| `pkg-mail-access-client-id` | `CF_ACCESS_CLIENT_ID` (secret) | You, from step 4. |
-| `pkg-mail-access-client-secret` | `CF_ACCESS_CLIENT_SECRET` (secret) | You, from step 4. |
 | `pkg-mail-fallback-addr` | `FALLBACK_ADDR` | You. |
 
+OpenTofu sets `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` (secret) from the service token `pkg-mail-worker`.
 OpenTofu sets two more bindings from variables with a default: `STALWART_USER` (`pkg_mail_address`, `packages@pkg.winstead.io`) and `JMAP_URL` (`pkg_mail_jmap_url`).
 
-Store the three values that you enter by hand. Each command asks for the value at a hidden prompt:
+Store the one value that you enter by hand. The command asks for the value at a hidden prompt:
 
 ```sh
-just aws put-secret pkg-mail-access-client-id
-just aws put-secret pkg-mail-access-client-secret
 just aws put-secret pkg-mail-fallback-addr
 ```
 
@@ -265,12 +230,26 @@ Then deploy. The Flux object `Terraform/cloudflare` in `flux-system` applies the
 To preview on the laptop, run `just cloudflare init` and `just cloudflare plan` in the repository root. Set `TF_VAR_account_id` first.
 
 The apply fails if one SSM parameter does not exist. The controller tries again each hour.
-Write all six parameters before you merge this change. The Stalwart Job writes three of them.
+Write all four parameters before you merge this change. The Stalwart Job writes three of them.
 The OpenTofu state holds all of these values in plain text. The state bucket is encrypted. See `cloudflare/provider.tf`.
+
+OpenTofu also makes these objects:
+
+- The Access service token `pkg-mail-worker`.
+- The Access policy `pkg-mail-worker`. It uses the action Service Auth (`non_identity`) and allows only that token.
+- The Access application for `pkg-ingest.winstead.io`. It denies every other request with a 401 and has no login page.
+- The Email Routing destination address `FALLBACK_ADDR`.
+
+The Kubernetes side is in `kubernetes/apps/default/stalwart/app/helmrelease.yaml`.
+The route `ingest` serves `pkg-ingest.winstead.io` on `envoy-external` and matches only the path prefix `/jmap`.
+The tunnel already sends `*.winstead.io` to `envoy-external`, and external-dns makes the DNS record. Do not change the tunnel.
 
 The Cloudflare API token needs these permissions, in addition to those in `cloudflare/provider.tf`:
 
 - Account > Workers Scripts > Edit
+- Account > Access: Apps and Policies > Edit
+- Account > Access: Service Tokens > Edit
+- Account > Email Routing Addresses > Edit
 - Zone > Email Routing Rules > Edit, on the zone `winstead.io`
 - Zone > Zone > Read, on the zone `winstead.io` (OpenTofu finds the zone ID by name)
 
@@ -286,17 +265,30 @@ tofu import cloudflare_email_routing_rule.pkg_mail ZONE_ID/RULE_ID
 Not verified: I did not run `plan` or `apply`, because the pod has no AWS or Cloudflare credentials.
 The controller applies plans on its own, so run `just cloudflare plan` on the laptop before you merge.
 I checked the resource shapes only with `tofu validate` against provider 5.29.0.
+I did not test the Access policy against a live Worker request. After the first apply, run these two tests.
+The first call must return 401 from Access. The second call must not reach Stalwart.
+
+```sh
+curl -i https://pkg-ingest.winstead.io/jmap/session
+curl -i https://pkg-ingest.winstead.io/admin
+```
+
 Check the first `plan`. Cloudflare may return the bindings in a different order, which shows as a change on each plan.
 
-## 6. Set up Email Routing
+## 4. Set up Email Routing
+
+OpenTofu makes the rule that sends `packages@pkg.winstead.io` to the Worker `pkg-mail-ingest` (step 3).
+OpenTofu also makes the destination address `FALLBACK_ADDR`. Two steps stay manual:
 
 1. In the Cloudflare dashboard, open the zone `winstead.io`. Go to Email > Email Routing.
-2. Enable Email Routing for the subdomain `pkg.winstead.io`. Add the DNS records that Cloudflare shows.
-3. Go to Destination addresses. Add the `FALLBACK_ADDR` address. Open the verification email and confirm it.
-4. OpenTofu makes the rule that sends `packages@pkg.winstead.io` to the Worker `pkg-mail-ingest` (step 5).
-   Do not add this rule by hand. Check it in the dashboard after the apply.
+   Enable Email Routing for the subdomain `pkg.winstead.io`. Add the DNS records that Cloudflare shows.
+   The provider resource `cloudflare_email_routing_dns` works on the zone and cannot manage a subdomain, so OpenTofu does not make these records.
+2. After the first apply, Cloudflare sends a verification email to `FALLBACK_ADDR`. Open the email and confirm it.
+   The Worker cannot forward to the address before you confirm it.
 
-## 7. Forward Proton email
+Do not add the rule by hand. Check it in the dashboard after the apply.
+
+## 5. Forward Proton email
 
 1. In Proton, add `packages@pkg.winstead.io` as a forwarding address.
 2. Proton sends a confirmation email to that address. The email goes to Stalwart.
@@ -306,7 +298,7 @@ Check the first `plan`. Cloudflare may return the bindings in a different order,
 4. Open the confirmation link in the email.
 5. Add a Proton filter that forwards shipping emails to `packages@pkg.winstead.io`.
 
-## 8. Set up Home Assistant
+## 6. Set up Home Assistant
 
 Install Mail and Packages with HACS. Use these settings:
 
