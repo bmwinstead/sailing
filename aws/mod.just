@@ -91,12 +91,46 @@ bootstrap-local:
 [group('aws')]
 [script]
 bootstrap-migrate:
-    [ -f terraform.tfstate ] || { just log error "No local state. Run 'just aws bootstrap-local' first."; exit 1; }
+    [ -f terraform.tfstate ] || { just log error "No local state. Run 'just aws bootstrap-local' first, or 'just aws init' if the bootstrap is done."; exit 1; }
     cp -p terraform.tfstate terraform.tfstate.bootstrap-backup
     rm -f backend_override.tf imports.tf
     tofu init -migrate-state
-    just aws check
+    rc=0
+    just aws check || rc=$?
+    # The local files hold the IAM access keys in plain text. Keep them only if the check fails.
+    if [ "$rc" -eq 0 ]; then
+      rm -f terraform.tfstate terraform.tfstate.backup terraform.tfstate.bootstrap-backup
+      just log info "Deleted the local state files"
+    else
+      just log warn "Kept the local state files. Delete them when the state in S3 is correct." files "terraform.tfstate*"
+    fi
+    exit "$rc"
 
 [doc('Run both bootstrap steps')]
 [group('aws')]
 bootstrap: bootstrap-local bootstrap-migrate
+
+[doc('Store a secret in SSM as /sailing/tofu/<name>. Value from a hidden prompt or stdin')]
+[group('aws')]
+[script]
+put-secret $name:
+    case "$name" in
+      '' | *[!A-Za-z0-9._-]*) just log error "The name must use only letters, digits, dot, underscore and dash"; exit 1 ;;
+    esac
+    if [ -t 0 ]; then
+      read -rsp "Value for $name: " value
+      echo >&2
+    else
+      value="$(cat)"
+    fi
+    [ -n "$value" ] || { just log error "The value is empty"; exit 1; }
+    region="$(tofu output -raw region)"
+    alias="$(tofu output -raw sops_kms_alias_name)"
+    prefix="$(tofu output -raw ssm_path_prefix)"
+    # printf is a shell builtin, so the value is not in any argv. jq reads it from stdin.
+    # aws reads the request from stdin, so the value is not in the aws argv either.
+    printf '%s' "$value" |
+      jq -Rs --arg name "$prefix/$name" --arg key "$alias" \
+        '{Name: $name, Value: ., Type: "SecureString", KeyId: $key, Overwrite: true}' |
+      aws ssm put-parameter --region "$region" --cli-input-json file:///dev/stdin >/dev/null
+    just log info "Stored the secret" parameter "$prefix/$name"
