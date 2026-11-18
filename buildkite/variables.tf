@@ -39,3 +39,9 @@ variable "cooking_repo_url" {
   type        = string
   default     = "entire://aws-us-east-2.entire.io/et/winstead-io/cooking"
 }
+
+variable "aws_region" {
+  description = "AWS region of the SSM parameters that hold the Buildkite API token and the organization slug"
+  type        = string
+  default     = "us-east-2"
+}
