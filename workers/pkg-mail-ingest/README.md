@@ -7,7 +7,7 @@ No inbound mail port is open on the cluster.
 
 ```text
 Shipper or Proton filter
-  -> packages@pkg.winstead.io
+  -> packages@bmwinstead.com
   -> Cloudflare Email Routing
   -> Email Worker pkg-mail-ingest
   -> HTTPS to pkg-ingest.winstead.io (Cloudflare Access service token)
@@ -67,7 +67,7 @@ If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n d
 
 ### 1.3 Sign in and set the listeners
 
-Flux makes the domain `pkg.winstead.io`, the account `packages@pkg.winstead.io`, its two app passwords, and the admin role of your account (steps 1.4 and 1.6).
+Flux makes the domain `bmwinstead.com`, the account `packages@bmwinstead.com`, its two app passwords, and the admin role of your account (steps 1.4 and 1.6).
 Do not make them by hand.
 
 1. Open `https://stalwart.winstead.io/admin`. This is an internal HTTPRoute (LAN only).
@@ -99,8 +99,8 @@ The plan does these steps in this order:
 4. Create or update the internal OAuth client `stalwart`. The recovery admin signs in to the WebUI with it.
 5. Set the OAuth client ID `stalwart` and the scopes `profile email` on the Application `Stalwart Web Interface`.
 6. Reload the settings and the web applications. Stalwart does not restart.
-7. Create or update the domain `pkg.winstead.io`. The domain made by hand is kept.
-8. Set the role Administrator on the account `bmw@winstead.io`. Create the account `packages@pkg.winstead.io` with the role User and no password.
+7. Create or update the domain `bmwinstead.com`. The domain made by hand is kept.
+8. Set the role Administrator on the account `bmw@winstead.io`. Create the account `packages@bmwinstead.com` with the role User and no password.
    The plan finds each account by its name and its domain.
    If `bmw` does not exist yet, the plan creates it without a password. The first Pocket ID sign-in then uses that account.
 
@@ -193,7 +193,7 @@ The Job writes these parameters:
 | `/sailing/tofu/pkg-mail-account-id` | String | The JMAP account ID of `packages` (`ACCOUNT_ID` of the Worker) |
 | `/sailing/tofu/pkg-mail-inbox-id` | String | The ID of its mailbox with the role `inbox` (`INBOX_ID` of the Worker) |
 
-The user name for both app passwords is `packages@pkg.winstead.io`.
+The user name for both app passwords is `packages@bmwinstead.com`.
 `just aws put-secret` is only for values that you type yourself. Do not use it for these parameters.
 
 The app password `pkg-mail-worker` can only sign in, upload a blob, and import an email (`authenticate`, `jmapBlobUpload`, `jmapEmailImport`).
@@ -222,11 +222,14 @@ kubectl --kubeconfig=kubeconfig -n default get job stalwart-pkg-credentials
 kubectl --kubeconfig=kubeconfig -n default logs job/stalwart-pkg-credentials
 ```
 
-- The Job can start before the `stalwart-config` Job has made the account. Then it fails with `no account packages@pkg.winstead.io yet` and tries again.
-- The Job runs again only when its script changes or when you delete it.
+- The Job can start before the `stalwart-config` Job has made the account. Then it fails with `no account packages@bmwinstead.com yet` and tries again.
+- The Job runs again only when its script or its manifest changes, or when you delete it.
   After a Stalwart reset, delete it: `kubectl --kubeconfig=kubeconfig -n default delete job stalwart-pkg-credentials`.
   Then run `flux --kubeconfig=kubeconfig -n default reconcile ks stalwart-config`.
 - To replace one app password, delete its SSM parameter and then delete the Job.
+- The mailbox moved from `pkg.winstead.io` to `bmwinstead.com`. The plan does not delete objects.
+  The old domain `pkg.winstead.io` and the old account `packages@pkg.winstead.io` stay in Stalwart until you delete them in the WebUI.
+  The Job reads only the account `packages` in the domain `bmwinstead.com`, so the old objects do no harm.
 
 ## 2. Get the account ID and the inbox ID
 
@@ -256,7 +259,7 @@ OpenTofu reads only `compatibility_date` from this file.
 | `pkg-mail-fallback-addr` | `FALLBACK_ADDR` | You. |
 
 OpenTofu sets `CF_ACCESS_CLIENT_ID` and `CF_ACCESS_CLIENT_SECRET` (secret) from the service token `pkg-mail-worker`.
-OpenTofu sets two more bindings from variables with a default: `STALWART_USER` (`pkg_mail_address`, `packages@pkg.winstead.io`) and `JMAP_URL` (`pkg_mail_jmap_url`).
+OpenTofu sets two more bindings from variables with a default: `STALWART_USER` (`pkg_mail_address`, `packages@bmwinstead.com`) and `JMAP_URL` (`pkg_mail_jmap_url`).
 
 Store the one value that you enter by hand. The command asks for the value at a hidden prompt:
 
@@ -276,6 +279,7 @@ OpenTofu also makes these objects:
 - The Access service token `pkg-mail-worker`.
 - The Access policy `pkg-mail-worker`. It uses the action Service Auth (`non_identity`) and allows only that token.
 - The Access application for `pkg-ingest.winstead.io`. It denies every other request with a 401 and has no login page.
+- Email Routing for the zone `bmwinstead.com` (`cloudflare_email_routing_dns`).
 - The Email Routing destination address `FALLBACK_ADDR`.
 
 The Kubernetes side is in `kubernetes/apps/default/stalwart/app/helmrelease.yaml`.
@@ -288,8 +292,13 @@ The Cloudflare API token needs these permissions, in addition to those in `cloud
 - Account > Access: Apps and Policies > Edit
 - Account > Access: Service Tokens > Edit
 - Account > Email Routing Addresses > Edit
-- Zone > Email Routing Rules > Edit, on the zone `winstead.io`
-- Zone > Zone > Read, on the zone `winstead.io` (OpenTofu finds the zone ID by name)
+- Zone > Email Routing Rules > Edit, on the zone `bmwinstead.com`
+- Zone > Zone > Read, on the zone `bmwinstead.com` (OpenTofu finds the zone ID by name)
+- Zone > Zone Settings > Edit, on the zone `bmwinstead.com` (OpenTofu turns on Email Routing)
+- Zone > DNS > Edit, on the zone `bmwinstead.com` (Email Routing makes the MX and SPF records)
+
+If the token is for one zone only, use the all-zones scope for these permissions.
+Never give the token an Email Routing job on `winstead.io`. That zone has Proton MX records.
 
 If you already deployed the Worker or made the Email Routing rule by hand, import them before you merge.
 Otherwise the apply fails with a conflict. Run these on the laptop:
@@ -315,26 +324,35 @@ Check the first `plan`. Cloudflare may return the bindings in a different order,
 
 ## 4. Set up Email Routing
 
-OpenTofu makes the rule that sends `packages@pkg.winstead.io` to the Worker `pkg-mail-ingest` (step 3).
-OpenTofu also makes the destination address `FALLBACK_ADDR`. Two steps stay manual:
+The mailbox uses the zone `bmwinstead.com`. This zone has no other mail service and no MX records.
+Do not use `winstead.io`: Email Routing cannot run on a subdomain there, and the zone has Proton MX records.
+The variable `pkg_mail_zone_name` refuses `winstead.io` and its subdomains.
 
-1. In the Cloudflare dashboard, open the zone `winstead.io`. Go to Email > Email Routing.
-   Enable Email Routing for the subdomain `pkg.winstead.io`. Add the DNS records that Cloudflare shows.
-   The provider resource `cloudflare_email_routing_dns` works on the zone and cannot manage a subdomain, so OpenTofu does not make these records.
-2. After the first apply, Cloudflare sends a verification email to `FALLBACK_ADDR`. Open the email and confirm it.
-   The Worker cannot forward to the address before you confirm it.
+OpenTofu turns on Email Routing for `bmwinstead.com`. Cloudflare then makes and locks the MX and SPF records.
+OpenTofu makes the rule that sends `packages@bmwinstead.com` to the Worker `pkg-mail-ingest` (step 3).
+OpenTofu also makes the destination address `FALLBACK_ADDR`. Do not add these by hand.
+If Email Routing is already on for the zone, import it first: `tofu import cloudflare_email_routing_dns.pkg_mail ZONE_ID`.
+
+One step stays manual: after the first apply, Cloudflare sends a verification email to `FALLBACK_ADDR`.
+Open the email and confirm it. The Worker cannot forward to the address before you confirm it.
+
+Not verified: the provider docs do not say that `cloudflare_email_routing_dns` makes the DKIM record.
+After the first apply, open Email > Email Routing in the dashboard for `bmwinstead.com`.
+Check that the status is Ready and that the DNS records are there.
 
 Do not add the rule by hand. Check it in the dashboard after the apply.
 
 ## 5. Forward Proton email
 
-1. In Proton, add `packages@pkg.winstead.io` as a forwarding address.
+WARNING: The Proton forwarding address must be `packages@bmwinstead.com`. The old address `packages@pkg.winstead.io` does not receive mail.
+
+1. In Proton, add `packages@bmwinstead.com` as a forwarding address.
 2. Proton sends a confirmation email to that address. The email goes to Stalwart.
 3. Read the confirmation email. Use an IMAPS client through a port-forward
    (`kubectl --kubeconfig=kubeconfig -n default port-forward svc/stalwart 993:993`),
    or use the JMAP method `Email/query` with `Email/get`.
 4. Open the confirmation link in the email.
-5. Add a Proton filter that forwards shipping emails to `packages@pkg.winstead.io`.
+5. Add a Proton filter that forwards shipping emails to `packages@bmwinstead.com`.
 
 ## 6. Set up Home Assistant
 
@@ -342,7 +360,7 @@ Install Mail and Packages with HACS. Use these settings:
 
 - Host: `stalwart.default.svc.cluster.local`
 - Port: `993`, SSL
-- Username: `packages@pkg.winstead.io`
+- Username: `packages@bmwinstead.com`
 - Password: the Home Assistant app password. Read it from SSM:
 
   ```sh

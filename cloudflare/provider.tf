@@ -7,8 +7,12 @@
 #      - Account > Account API Tokens > Edit      (creates the bucket-scoped token)
 #      For the pkg-mail Worker (pkg_mail_worker.tf, see ../workers/pkg-mail-ingest/README.md):
 #      - Account > Workers Scripts > Edit
-#      - Zone > Email Routing Rules > Edit        (zone winstead.io)
-#      - Zone > Zone > Read                       (zone winstead.io)
+#      - Zone > Email Routing Rules > Edit        (zone bmwinstead.com)
+#      - Zone > Zone > Read                       (zone bmwinstead.com)
+#      - Zone > Zone Settings > Edit              (zone bmwinstead.com, turns on Email Routing)
+#      - Zone > DNS > Edit                        (zone bmwinstead.com, Email Routing MX and SPF records)
+#      Use the all-zones scope if the token is per zone and cannot name one zone.
+#      The Email Routing zone is bmwinstead.com. Never use winstead.io: it has Proton MX records.
 #      For the Access app that guards the Worker route (pkg_mail_access.tf):
 #      - Account > Access: Apps and Policies > Edit
 #      - Account > Access: Service Tokens > Edit
