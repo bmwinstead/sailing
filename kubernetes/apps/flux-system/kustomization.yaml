@@ -14,3 +14,4 @@ resources:
   - ./performance/ks.yaml
   - ./cooking/ks.yaml
   - ./cooking-backups/ks.yaml
+  - ./tofu-controller/ks.yaml
