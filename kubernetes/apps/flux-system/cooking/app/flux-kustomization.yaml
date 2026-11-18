@@ -14,7 +14,7 @@ spec:
   sourceRef:
     kind: OCIRepository
     name: cooking
-  # Controller-level key: --sops-age-secret=sops-age (flux-instance helmrelease).
+  # The kustomize-controller decrypts with KMS (Secret sops-aws, flux-instance helmrelease).
   decryption:
     provider: sops
   postBuild:
