@@ -17,6 +17,14 @@ spec:
       defaultDataPath: /var/lib/longhorn
       defaultReplicaCount: 1
       storageReservedPercentageForDefaultDisk: 10
+      # pop-os is a GPU node with no iscsiadm. Keep Longhorn on k8s-3 only.
+      systemManagedComponentsNodeSelector: kubernetes.io/hostname:k8s-3
+    longhornManager:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-3
+    longhornDriver:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-3
     persistence:
       defaultClass: true
       defaultClassReplicaCount: 1
