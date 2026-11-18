@@ -10,24 +10,14 @@ stringData:
   lastName: ENC[AES256_GCM,data:O654W2yiE0g=,iv:YgM9+7kcNCQZPbi9EUzGNz48PRLsRBH0KoxvwmHDNVI=,tag:5lvcj6rfmdrC4q8d93kAaA==,type:str]
   email: ENC[AES256_GCM,data:kfI85+CKL2+ZAWOfh+GSwhWc5OFvcxbUfnhWC03JeHY=,iv:umIsgJVxP/SpW0miE1IuWrTRmJo3FUCdQWwz4+0D+2Q=,tag:FsKgmtTL5aUMjVH5XydoXw==,type:str]
 sops:
-  age:
-    - enc: |
-        -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBEenVoMDMxR0hCKzBwaGIr
-        M3I0eTZacGxkN0JrZ0lKSlcvelpUSVB4WXpnCndsNUxQRGNKenQ3Nm9zZldhNG9T
-        d3ZlVG1Cd0ZRRS90SEgyenI0VlFOcE0KLS0tIFFydnBvODdqWnR1MUNvWldNMzVL
-        WUljWitXSHJlaUdvcFBNSEhsL2JZRVEKhsR3Q4OQgdzEdDqmlYQONol/6BL5I7/v
-        qsMj7ikAZJwrNUX+UB4i3SVInzzZEQXZtGB93C5yIs4vsu98TDKPtg==
-        -----END AGE ENCRYPTED FILE-----
-      recipient: age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el
   encrypted_regex: ^(data|stringData)$
   kms:
     - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
       aws_profile: ""
       context:
         purpose: sops
-      created_at: "2026-11-18T07:26:39Z"
-      enc: AQICAHjgw/vIYU2CX5id4R5kz7lKeSSRLiACpC/t30YYpZazkAGJXRxdzSFPx780/2CoxLwMAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMcfi98WJbWaQjwOYaAgEQgDvXQnjhh85XCYh79jOazlNgP2kn+6RhZFXEZmC6ubhTvb+3LJa30/5/pzTOz2aza7Xt2BcCyVWa+Fn2jw==
+      created_at: "2026-11-18T14:55:07Z"
+      enc: AQICAHjgw/vIYU2CX5id4R5kz7lKeSSRLiACpC/t30YYpZazkAF/gPvlVLwP/RareR8rpWlOAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMp9qQgXSxChokxZJhAgEQgDsFWYqmH+UODdLKTC9iHXtLcRRCBhK7YBsLind97lBb3huZJrO88XxqsclABBoCrUnYhmhvfRBlZ+ApRA==
   lastmodified: "2026-11-12T03:33:18Z"
   mac: ENC[AES256_GCM,data:qlogdSK2MuQsrhCURZvKuAwQGoikURIji830YTMHIjx82STvjeok7UgKhJqZmS6VdVjYivHnRNK30kb3YwUTZ7pQFevRyZQL1b8Vk9TDf721UYpp2SybvN5aMp5oXztwQ84TVXJEGpIC+u8t2cbycO+EHT8mv5QIXd2pkpAyK3c=,iv:YTDXQI53KmNwgF7oLuV20Xlt4vuTXHwfLElH6JAPT6k=,tag:8BlEO5BhtgtYAGVv4nFr9A==,type:str]
   mac_only_encrypted: true
