@@ -13,6 +13,12 @@ spec:
   # WebUI redirect URI: <origin><base path>/oauth/callback
   callbackUrls:
     - https://stalwart.${SECRET_DOMAIN}/admin/oauth/callback
+    - https://stalwart.${SECRET_DOMAIN}/account/oauth/callback
+  # Allow the "resource" the WebUI sends. A user-delegated grant needs no scopes.
+  apiAccess:
+    - apiRef:
+        name: stalwart
+      delegatedAccess: true
   allowedUserGroups:
     - name: admins
       namespace: auth
