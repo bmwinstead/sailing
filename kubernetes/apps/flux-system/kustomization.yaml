@@ -15,3 +15,4 @@ resources:
   - ./cooking/ks.yaml
   - ./cooking-backups/ks.yaml
   - ./tofu-controller/ks.yaml
+  - ./tofu-controller/terraform/ks.yaml
