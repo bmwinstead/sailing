@@ -47,10 +47,10 @@ data "cloudflare_zone" "pkg_mail" {
 # Turns on Email Routing for the zone. Cloudflare adds and locks the MX and SPF records.
 # This resource acts only on the zone pkg_mail_zone_name (bmwinstead.com). The variable refuses winstead.io.
 # Caution: if you take this resource out of the config, OpenTofu turns Email Routing off for the zone.
-# If Email Routing is already on, import it first: tofu import cloudflare_email_routing_dns.pkg_mail ZONE_ID
-resource "cloudflare_email_routing_dns" "pkg_mail" {
+# If Email Routing is already on, import it first: tofu import cloudflare_email_routing_settings.pkg_mail ZONE_ID
+# Not cloudflare_email_routing_dns: its name field takes a subdomain and fails with 422 on the zone itself.
+resource "cloudflare_email_routing_settings" "pkg_mail" {
   zone_id = data.cloudflare_zone.pkg_mail.zone_id
-  name    = data.cloudflare_zone.pkg_mail.name
 }
 
 # This rule sends mail for the package address to the Worker.
@@ -71,5 +71,5 @@ resource "cloudflare_email_routing_rule" "pkg_mail" {
     value = [cloudflare_workers_script.pkg_mail_ingest.script_name]
   }]
 
-  depends_on = [cloudflare_email_routing_dns.pkg_mail]
+  depends_on = [cloudflare_email_routing_settings.pkg_mail]
 }
