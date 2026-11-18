@@ -27,7 +27,8 @@ apply:
 sync-secret:
     access_key_id="$(tofu output -raw access_key_id)"
     secret_access_key="$(tofu output -raw secret_access_key)"
-    secret_path="../kubernetes/apps/default/home-assistant/app/secret-r2.sops.yaml"
+    s3_endpoint="$(tofu output -raw s3_endpoint)"
+    secret_path="../kubernetes/apps/default/cnpg-r2-credentials.sops.yaml"
     cat <<SECRET | sops --filename-override "$secret_path" --encrypt /dev/stdin > "$secret_path"
     ---
     apiVersion: v1
@@ -38,5 +39,6 @@ sync-secret:
     stringData:
       ACCESS_KEY_ID: $access_key_id
       ACCESS_SECRET_KEY: $secret_access_key
+      R2_ENDPOINT: $s3_endpoint
     SECRET
     just log info "Encrypted secret written" path "$secret_path"

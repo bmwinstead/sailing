@@ -5,6 +5,8 @@ metadata:
   name: home-assistant
 spec:
   dependsOn:
+    - name: barman-cloud-plugin # ObjectStore CRD and plugin
+      namespace: cnpg-system
     - name: cloudnative-pg # Cluster CRD and webhook
       namespace: cnpg-system
     - name: pocket-id # PocketIDOIDCClient CRD and operator
@@ -14,6 +16,8 @@ spec:
   postBuild:
     substituteFrom:
       - name: cluster-secrets
+        kind: Secret
+      - name: cnpg-r2-credentials # R2_ENDPOINT for the ObjectStore. Applied by the default namespace kustomization.
         kind: Secret
   prune: true
   sourceRef:

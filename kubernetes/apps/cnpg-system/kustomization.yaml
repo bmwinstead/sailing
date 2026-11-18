@@ -5,4 +5,5 @@ namespace: cnpg-system
 
 resources:
   - ./namespace.yaml
+  - ./barman-cloud-plugin/ks.yaml
   - ./cloudnative-pg/ks.yaml
