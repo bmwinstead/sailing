@@ -70,7 +70,13 @@ bootstrap-local:
       just log error "State exists in S3 at {{ state_key }}. Run 'just aws init' instead."
       exit 1
     fi
-    managed="$(tofu state list)"
+    # A first run has no state file yet, and "tofu state list" exits 1 then.
+    managed="$(tofu state list 2>&1)" || {
+      case "$managed" in
+        *"No state file was found"*) managed="" ;;
+        *) printf '%s\n' "$managed" >&2; exit 1 ;;
+      esac
+    }
     : > imports.tf
     add_import() {
       if [ "$3" = yes ] && ! grep -qx "$1" <<<"$managed"; then
@@ -124,13 +130,21 @@ put-secret $name:
       value="$(cat)"
     fi
     [ -n "$value" ] || { just log error "The value is empty"; exit 1; }
+    # A pasted prompt or a stray newline looks like whitespace. No token has any.
+    case "$value" in
+      *[[:space:][:cntrl:]]*) just log error "The value has whitespace or control characters. Paste only the secret."; exit 1 ;;
+    esac
     region="$(tofu output -raw region)"
     alias="$(tofu output -raw sops_kms_alias_name)"
     prefix="$(tofu output -raw ssm_path_prefix)"
     # printf is a shell builtin, so the value is not in any argv. jq reads it from stdin.
-    # aws reads the request from stdin, so the value is not in the aws argv either.
+    # The request goes through a private temp file, because the aws CLI does not
+    # read "file:///dev/stdin" from a pipe on macOS. The trap deletes the file.
+    umask 077
+    request="$(mktemp)"
+    trap 'rm -f "$request"' EXIT
     printf '%s' "$value" |
       jq -Rs --arg name "$prefix/$name" --arg key "$alias" \
-        '{Name: $name, Value: ., Type: "SecureString", KeyId: $key, Overwrite: true}' |
-      aws ssm put-parameter --region "$region" --cli-input-json file:///dev/stdin >/dev/null
+        '{Name: $name, Value: ., Type: "SecureString", KeyId: $key, Overwrite: true}' > "$request"
+    aws ssm put-parameter --region "$region" --cli-input-json "file://$request" >/dev/null
     just log info "Stored the secret" parameter "$prefix/$name"
