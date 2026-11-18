@@ -94,11 +94,12 @@ App passwords, API keys, and the recovery admin password continue to work. Stalw
 
 The plan does these steps in this order:
 
-1. Create or update the OIDC directory `Pocket ID`. Its issuer is `https://id.winstead.io` and its accepted audience is `stalwart`.
-2. Set this directory as `directoryId` on the `Authentication` object. Without this link, the WebUI does not find Pocket ID.
-3. Create or update the internal OAuth client `stalwart`. The recovery admin signs in to the WebUI with it.
-4. Set the OAuth client ID `stalwart` and the scopes `profile email` on the Application `Stalwart Web Interface`.
-5. Reload the settings and the web applications. Stalwart does not restart.
+1. Create or update the domain `winstead.io`.
+2. Create or update the OIDC directory `Pocket ID`. Its issuer is `https://id.winstead.io` and its accepted audience is `stalwart`.
+3. Set this directory as `directoryId` on the `Authentication` object. Without this link, the WebUI does not find Pocket ID.
+4. Create or update the internal OAuth client `stalwart`. The recovery admin signs in to the WebUI with it.
+5. Set the OAuth client ID `stalwart` and the scopes `profile email` on the Application `Stalwart Web Interface`.
+6. Reload the settings and the web applications. Stalwart does not restart.
 
 The plan finds each object by its description or client ID. You can run the plan again. It does not make duplicates.
 If no Application has the description `Stalwart Web Interface`, the Job fails.
@@ -146,9 +147,8 @@ Stalwart makes the account at the first Pocket ID sign-in.
 The account address is the Pocket ID user name (`preferred_username`) and `@winstead.io`.
 The display name comes from the `name` claim.
 
-1. Make sure that the domain `winstead.io` exists in Stalwart. The plan does not make it.
-   Without the domain, the sign-in fails with `Account domain does not exist or has been disabled`.
-   Make it as the recovery admin in the WebUI, or with the CLI: `stalwart-cli create Domain --field name=winstead.io`
+1. The plan creates the Stalwart domain `winstead.io`. Without it, the sign-in fails with `Account domain does not exist or has been disabled`.
+   Stalwart makes DKIM keys for this domain. It has no SMTP listener, so it does not send mail.
 2. Open `https://stalwart.winstead.io/admin`. Type `USERNAME@winstead.io`. The WebUI sends you to Pocket ID.
 3. Sign in at Pocket ID. Stalwart makes the account with the role User.
 4. Sign out. Sign in as `admin` with the password from step 1.1. The recovery admin always uses the Stalwart sign-in page.
