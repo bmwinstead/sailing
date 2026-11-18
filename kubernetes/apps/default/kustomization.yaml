@@ -25,5 +25,6 @@ resources:
   - ./storage/ks.yaml
   - ./recyclarr/ks.yaml
   - ./stalwart/ks.yaml
+  - ./stalwart/config/ks.yaml
   - ./mosquitto/ks.yaml
   - ./zwave-js-ui/ks.yaml

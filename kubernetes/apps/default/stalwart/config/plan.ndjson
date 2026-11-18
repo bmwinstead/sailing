@@ -1,0 +1,7 @@
+{"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"winstead":{"name":"${SECRET_DOMAIN}"}}}
+{"@type":"upsert","object":"Directory","matchOn":["description"],"value":{"pocket-id":{"@type":"Oidc","description":"Pocket ID","issuerUrl":"https://id.${SECRET_DOMAIN}","claimUsername":"preferred_username","usernameDomain":"${SECRET_DOMAIN}","claimName":"name","acceptedAudiences":{"stalwart":true}}}}
+{"@type":"update","object":"Authentication","value":{"directoryId":"#pocket-id"}}
+{"@type":"upsert","object":"OAuthClient","matchOn":["clientId"],"value":{"webui-client":{"clientId":"stalwart","description":"Stalwart WebUI, for the recovery admin sign-in","redirectUris":{"https://stalwart.${SECRET_DOMAIN}/admin/oauth/callback":true}}}}
+{"@type":"upsert","object":"Application","matchOn":["description"],"value":{"webui":{"description":"Stalwart Web Interface","oauthClientId":"stalwart","oauthScopes":{"profile":true,"email":true}}}}
+{"@type":"create","object":"Action","value":{"reload":{"@type":"ReloadSettings"}}}
+{"@type":"create","object":"Action","value":{"apps":{"@type":"UpdateApps"}}}
