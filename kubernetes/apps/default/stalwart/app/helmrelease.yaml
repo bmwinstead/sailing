@@ -96,7 +96,7 @@ spec:
     route:
       app:
         # LAN only. The admin UI and JMAP are not exposed to the internet by this route.
-        # The Cloudflare tunnel keeps its own /jmap route for the Email Worker.
+        # The route "ingest" below is the only public route.
         hostnames:
           - "stalwart.${SECRET_DOMAIN}"
         parentRefs:
@@ -105,6 +105,24 @@ spec:
             sectionName: https
         rules:
           - backendRefs:
+              - identifier: app
+                port: *http
+      # Public route for the Email Worker. The tunnel sends *.${SECRET_DOMAIN} to envoy-external.
+      # external-dns makes the DNS record. Cloudflare Access (cloudflare/pkg_mail_access.tf) allows only the Worker.
+      # Only /jmap is matched. Any other path gets a 404 from Envoy.
+      ingest:
+        hostnames:
+          - "pkg-ingest.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: https
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /jmap
+            backendRefs:
               - identifier: app
                 port: *http
     configMaps:

@@ -5,6 +5,19 @@
 #      Dashboard > My Profile > API Tokens > Create Token > Create Custom Token
 #      - Account > Workers R2 Storage > Edit      (creates the R2 bucket)
 #      - Account > Account API Tokens > Edit      (creates the bucket-scoped token)
+#      For the pkg-mail Worker (pkg_mail_worker.tf, see ../workers/pkg-mail-ingest/README.md):
+#      - Account > Workers Scripts > Edit
+#      - Zone > Email Routing Rules > Edit        (zone bmwinstead.com)
+#      - Zone > Zone > Read                       (zone bmwinstead.com)
+#      - Zone > Zone Settings > Edit              (zone bmwinstead.com, turns on Email Routing)
+#      - Zone > DNS > Edit                        (zone bmwinstead.com, Email Routing MX and SPF records)
+#      Use the all-zones scope if the token is per zone and cannot name one zone.
+#      The Email Routing zone is bmwinstead.com. Never use winstead.io: it has Proton MX records.
+#      For the Access app that guards the Worker route (pkg_mail_access.tf):
+#      - Account > Access: Apps and Policies > Edit
+#      - Account > Access: Service Tokens > Edit
+#      - Account > Email Routing Addresses > Edit  (the fallback destination address)
+#      No tunnel permission is needed. Do not add a tunnel resource.
 #    Set "Account Resources" to Include > the account that owns the bucket.
 #    Edit includes Read, which the permission groups data source needs.
 # 2. Apply the aws module first (it creates the state bucket and the KMS key):

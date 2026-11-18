@@ -11,12 +11,12 @@ default:
 init:
     tofu init
 
-[doc('Preview changes to the R2 bucket and its API token')]
+[doc('Preview changes to the R2 bucket, its API token, and the pkg-mail Worker')]
 [group('cloudflare')]
 plan:
     tofu plan
 
-[doc('Apply changes to the R2 bucket and its API token')]
+[doc('Apply changes to the R2 bucket, its API token, and the pkg-mail Worker')]
 [group('cloudflare')]
 apply:
     tofu apply
