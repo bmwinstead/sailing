@@ -17,7 +17,7 @@ spec:
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
-      - name: cnpg-r2-credentials # R2_ENDPOINT for the ObjectStore
+      - name: cnpg-r2-credentials # R2_ENDPOINT for the ObjectStore. Applied by the default namespace kustomization.
         kind: Secret
   prune: true
   sourceRef:

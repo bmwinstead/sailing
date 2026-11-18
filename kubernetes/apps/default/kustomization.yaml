@@ -9,6 +9,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./app-secrets.sops.yaml
+  - ./cnpg-r2-credentials.sops.yaml
   - ./echo/ks.yaml
   - ./homepage/ks.yaml
   - ./jellyfin/ks.yaml
