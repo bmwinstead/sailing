@@ -261,16 +261,11 @@ just aws put-secret pkg-mail-access-client-secret
 just aws put-secret pkg-mail-fallback-addr
 ```
 
-Then deploy. Run all of these in the repository root:
+Then deploy. The Flux object `Terraform/cloudflare` in `flux-system` applies the module on its own after the merge to `main` (see `kubernetes/apps/flux-system/tofu-controller/README.md`).
+To preview on the laptop, run `just cloudflare init` and `just cloudflare plan` in the repository root. Set `TF_VAR_account_id` first.
 
-```sh
-export TF_VAR_account_id=ACCOUNT_ID   # the Cloudflare account ID
-just cloudflare init
-just cloudflare plan
-just cloudflare apply
-```
-
-`just cloudflare apply` fails if one SSM parameter does not exist. Run it after the Stalwart Job wrote its three parameters.
+The apply fails if one SSM parameter does not exist. The controller tries again each hour.
+Write all six parameters before you merge this change. The Stalwart Job writes three of them.
 The OpenTofu state holds all of these values in plain text. The state bucket is encrypted. See `cloudflare/provider.tf`.
 
 The Cloudflare API token needs these permissions, in addition to those in `cloudflare/provider.tf`:
@@ -279,8 +274,8 @@ The Cloudflare API token needs these permissions, in addition to those in `cloud
 - Zone > Email Routing Rules > Edit, on the zone `winstead.io`
 - Zone > Zone > Read, on the zone `winstead.io` (OpenTofu finds the zone ID by name)
 
-If you already deployed the Worker or made the Email Routing rule by hand, import them before the first apply.
-Otherwise the apply fails with a conflict:
+If you already deployed the Worker or made the Email Routing rule by hand, import them before you merge.
+Otherwise the apply fails with a conflict. Run these on the laptop:
 
 ```sh
 cd cloudflare
@@ -289,6 +284,7 @@ tofu import cloudflare_email_routing_rule.pkg_mail ZONE_ID/RULE_ID
 ```
 
 Not verified: I did not run `plan` or `apply`, because the pod has no AWS or Cloudflare credentials.
+The controller applies plans on its own, so run `just cloudflare plan` on the laptop before you merge.
 I checked the resource shapes only with `tofu validate` against provider 5.29.0.
 Check the first `plan`. Cloudflare may return the bindings in a different order, which shows as a change on each plan.
 
