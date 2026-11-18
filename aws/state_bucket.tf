@@ -16,14 +16,18 @@ resource "aws_s3_bucket_versioning" "tfstate" {
   }
 }
 
+# Encrypted with the shared KMS key. The key policy is the default root-account
+# policy, so IAM policies on users grant access. With a bucket key, the KMS
+# encryption context is the bucket ARN, not the object ARN (see iam.tf).
 resource "aws_s3_bucket_server_side_encryption_configuration" "tfstate" {
   bucket = aws_s3_bucket.tfstate.id
 
   rule {
-    bucket_key_enabled = false
+    bucket_key_enabled = true
 
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.sops.arn
     }
   }
 }
