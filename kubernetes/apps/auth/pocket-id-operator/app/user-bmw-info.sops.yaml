@@ -13,14 +13,21 @@ sops:
   age:
     - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBPcWlVWWd5eSt6Mm9RQWVM
-        c2Q3akdOQ3B5a212Rk42cENmeExXZ1hKM213CitET2xDekdTb211Y25rM0V6OUk0
-        QStzUUZSdzJWZUY1Y0luWDVPdHVZWTQKLS0tIGNJMm9YeGRMNkd4aFRUNEt0UElO
-        S2paTWNBWWFpcDZ3K1A2clVNUWZLamcKZPETDjBg33Ds28msR/8QCHtYficWa8EQ
-        8NXV9hGGEd30YosDXtfc24CAIssbBCmcwQmnSVOuBMEDf4yXF3HvbA==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBUUDhKRkFTSWlTL0JPZGpv
+        K1lCaE1WSTYvSExYbW1STWJNYzh0R3NRYWtnCno2endWOWtZcTgxbHV1dVJqVjVs
+        Ris4NTAzemt3aHVwZmtUTFRKMUt1UmMKLS0tIG1md0FwQ3JIV0NIOENMZC9XUnZR
+        WFViNEZZbmNwTWNyUkFNRzZxVEtkTXcKSGuOfmfa//kuHLDzQBCdhhUu6eGtV7Jz
+        tQXjT+NXftAVOU0iqnjXE7aLimkUGJAVBWcnpIrCey9uzUfkcVin0A==
         -----END AGE ENCRYPTED FILE-----
       recipient: age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el
   encrypted_regex: ^(data|stringData)$
+  kms:
+    - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
+      aws_profile: ""
+      context:
+        purpose: sops
+      created_at: "2026-11-18T07:26:38Z"
+      enc: AQICAHjgw/vIYU2CX5id4R5kz7lKeSSRLiACpC/t30YYpZazkAHM2hUiM6wF/YY0K6AkV4RjAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM73D9SVb58CPoJsBKAgEQgDveo+yCEZdn9lyoFDbJSFk0m4iio78D0r0P27e2hLYW4iiumF8l9mRMiZlxlA9YLK4QLCaR9X3yychIhw==
   lastmodified: "2026-11-12T03:08:06Z"
   mac: ENC[AES256_GCM,data:9zakOCS4MTrU413RScS8/2AortcNJ62vPh7ia8qUoHJnjNgCDLqsxQZNOpzJ6ceshvKCvFJmnR29jDAJv8Ges5gi9rGnnKeSMI5cOqdVR7Dn7RhOFG+fhnven/ojfaUiREupDAm5+r/sHEEZKIk47PptJaNSOXrOHXwfKQad+jQ=,iv:ZVjTREH1Qn55TQVq8xZ/CNYdgPQnjZeruMfsYj4i8gA=,tag:rU8+OGTyoI+FGnDqA2y4qg==,type:str]
   mac_only_encrypted: true
