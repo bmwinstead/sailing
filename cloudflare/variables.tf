@@ -20,3 +20,21 @@ variable "aws_region" {
   type        = string
   default     = "us-east-2"
 }
+
+variable "zone_name" {
+  description = "Cloudflare zone that holds the Email Routing rule for the package address"
+  type        = string
+  default     = "winstead.io"
+}
+
+variable "pkg_mail_address" {
+  description = "Package mailbox address. It is the Email Routing match and the Stalwart login name of the Worker."
+  type        = string
+  default     = "packages@pkg.winstead.io"
+}
+
+variable "pkg_mail_jmap_url" {
+  description = "Public URL of the Stalwart JMAP route (Cloudflare Tunnel + Access)"
+  type        = string
+  default     = "https://pkg-ingest.winstead.io"
+}
