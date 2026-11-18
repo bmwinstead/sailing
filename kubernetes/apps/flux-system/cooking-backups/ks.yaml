@@ -4,9 +4,10 @@ kind: Kustomization
 metadata:
   name: cooking-backups
 spec:
+  # No dependsOn on the cooking Kustomization. It uses wait: true and waits for
+  # the Cluster, which can need this ObjectStore once it archives to it. The
+  # namespace already exists. If it does not, this retries until it does.
   dependsOn:
-    - name: cooking # creates the cooking namespace
-      namespace: flux-system
     - name: barman-cloud-plugin # ObjectStore CRD and plugin
       namespace: cnpg-system
   interval: 1h
