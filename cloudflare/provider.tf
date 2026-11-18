@@ -12,7 +12,8 @@
 # 3. Store the token in AWS SSM Parameter Store. Paste it at the hidden prompt:
 #      just aws put-secret cloudflare-api-token
 # 4. Sign in to AWS (aws login, or aws sso login --profile <profile>), then:
-#      export TF_VAR_account_id=<account-id>     (the Cloudflare account ID)
+#      cp local.auto.tfvars.example local.auto.tfvars   (in cloudflare/; git ignores it)
+#      Put the Cloudflare account ID in local.auto.tfvars. OpenTofu loads it for plan, apply and import.
 #      just cloudflare init
 # 5. just cloudflare plan    # review: creates 1 R2 bucket, 1 account API token
 # 6. just cloudflare apply
