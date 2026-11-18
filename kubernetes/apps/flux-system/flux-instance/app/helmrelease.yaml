@@ -115,6 +115,16 @@ spec:
             target:
               kind: Deployment
               name: kustomize-controller
+          - # KMS credentials for SOPS (user sailing-flux-sops, Secret sops-aws)
+            patch: |
+              - op: add
+                path: /spec/template/spec/containers/0/envFrom
+                value:
+                  - secretRef:
+                      name: sops-aws
+            target:
+              kind: Deployment
+              name: kustomize-controller
           - # Watch configmaps and secrets attached to HelmReleases and Kustomizations
             patch: |-
               - op: add
