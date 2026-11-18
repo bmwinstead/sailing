@@ -10,14 +10,21 @@ sops:
   age:
     - enc: |
         -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBMR2owSDVPZFhVMERLbGx6
-        bENxcUcrL1lJeEZQQWtPNU5peW9IYi9LNUJBCnM2Q0ZCcGhrb25mQkE4enBQOTJG
-        SVMzcW15T0s5ZU84UzY0N2YwSERDc0kKLS0tIDZBR2pGdXZpeE5WOHZzTmZkcFNW
-        SE5Gdm93Mk0zeE85L21URktxd08xR3cKSQpekEoMucLV6MBBkZ55/tRY4j1ZJlLd
-        j9BYBWpaCv7O6m8b6LznJdjkT/ieJDLy6KeCAZ03hn7PO69CKkxXcA==
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBia0NXdGhuTjYybFBkNHRi
+        NkZtRmJPN1BXb1N0L3M3U1NFQW00enF1aVZJCmV5U29jRUNOTlYrNnNBMjcwUVI4
+        NEdWQkNVNUh4TkoyUW5DckhrQW8vOHcKLS0tIE1LaTU3eGU5amdVSUdTVFlsMjBN
+        bjQ1T20yTGZGZTlvYWhBL0dqQWZ4dDAKPzw5nGsnRct9GQWu0OWs1+tzZB83Qk+6
+        A3+2OL2BnVNO9ishb3q4pEmZjkwFoJO5Bki+KRif3Ca3ObC5MqFDsA==
         -----END AGE ENCRYPTED FILE-----
       recipient: age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el
   encrypted_regex: ^(data|stringData)$
+  kms:
+    - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
+      aws_profile: ""
+      context:
+        purpose: sops
+      created_at: "2026-11-18T07:26:42Z"
+      enc: AQICAHjgw/vIYU2CX5id4R5kz7lKeSSRLiACpC/t30YYpZazkAGEOdFhnz7MyNG5ZFV4K3wfAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMd3gkPcMeMXbbOyqgAgEQgDuAXM2HsPG9J2MdKfxgDAEswdx1IeSGPpTvCVMO8cbuB509ekqQC+SnedBo6q8rQbwp5XleSSy15Hnl2A==
   lastmodified: "2026-11-18T03:37:01Z"
   mac: ENC[AES256_GCM,data:3iOim162W3UVoNxzqdpHj0Ji/RVrA2fGRwsMBs5K9It5JNAjgOxdPJEoOZ8jFLBDW3cpsFL7FhN7BfyKXdVNw8At6qHTbeKWagJos4L3DBoGnyr1d6j70Mt7GEwrIpTfweYd2FeUHYwiAEkjTq5WFOgPQpA2zHaZBB6IP1RUXC8=,iv:th8oSgREBanUoq7SrHvZF9dCDXNLM5ZuswINo/kSpOk=,tag:LUjs8YV5yfCgzrDb/XumEw==,type:str]
   mac_only_encrypted: true
