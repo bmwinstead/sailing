@@ -1,5 +1,6 @@
 ---
-# Applies the settings that Stalwart keeps in its database (OIDC directory, WebUI client ID) with stalwart-cli.
+# Applies the settings that Stalwart keeps in its database (OIDC directory, WebUI client ID, accounts) with stalwart-cli.
+# The Job stalwart-pkg-credentials mints the app passwords of the package mailbox into AWS SSM.
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:

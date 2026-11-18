@@ -5,3 +5,5 @@
 {"@type":"upsert","object":"Application","matchOn":["description"],"value":{"webui":{"description":"Stalwart Web Interface","oauthClientId":"stalwart","oauthScopes":{"profile":true,"email":true}}}}
 {"@type":"create","object":"Action","value":{"reload":{"@type":"ReloadSettings"}}}
 {"@type":"create","object":"Action","value":{"apps":{"@type":"UpdateApps"}}}
+{"@type":"upsert","object":"Domain","matchOn":["name"],"value":{"pkg":{"name":"pkg.${SECRET_DOMAIN}"}}}
+{"@type":"upsert","object":"Account","matchOn":["name","domainId"],"value":{"bmw":{"@type":"User","name":"bmw","domainId":"#winstead","roles":{"@type":"Admin"}},"packages":{"@type":"User","name":"packages","domainId":"#pkg"}}}

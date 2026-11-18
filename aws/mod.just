@@ -148,3 +148,25 @@ put-secret $name:
         '{Name: $name, Value: ., Type: "SecureString", KeyId: $key, Overwrite: true}' > "$request"
     aws ssm put-parameter --region "$region" --cli-input-json "file://$request" >/dev/null
     just log info "Stored the secret" parameter "$prefix/$name"
+
+[doc('SOPS-encrypt the sailing-stalwart access key into the k8s Secret')]
+[group('aws')]
+[script]
+sync-stalwart-secret:
+    access_key_id="$(tofu output -raw stalwart_access_key_id)"
+    secret_access_key="$(tofu output -raw stalwart_secret_access_key)"
+    region="$(tofu output -raw region)"
+    secret_path="../kubernetes/apps/default/stalwart/config/aws-credentials.sops.yaml"
+    cat <<SECRET | sops --filename-override "$secret_path" --encrypt /dev/stdin > "$secret_path"
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: stalwart-aws-credentials
+      namespace: default
+    stringData:
+      AWS_ACCESS_KEY_ID: $access_key_id
+      AWS_SECRET_ACCESS_KEY: $secret_access_key
+      AWS_REGION: $region
+    SECRET
+    just log info "Encrypted secret written" path "$secret_path"

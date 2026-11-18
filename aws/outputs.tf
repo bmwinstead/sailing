@@ -45,3 +45,13 @@ output "flux_sops_secret_access_key" {
   value     = aws_iam_access_key.flux_sops.secret
   sensitive = true
 }
+
+output "stalwart_access_key_id" {
+  value     = aws_iam_access_key.stalwart.id
+  sensitive = true
+}
+
+output "stalwart_secret_access_key" {
+  value     = aws_iam_access_key.stalwart.secret
+  sensitive = true
+}
