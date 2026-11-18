@@ -8,7 +8,9 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./cnpg-r2-endpoint.sops.yaml
   - ./flux-instance/ks.yaml
   - ./flux-operator/ks.yaml
   - ./performance/ks.yaml
   - ./cooking/ks.yaml
+  - ./cooking-backups/ks.yaml
