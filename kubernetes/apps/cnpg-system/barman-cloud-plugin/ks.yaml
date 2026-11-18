@@ -1,0 +1,21 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: barman-cloud-plugin
+spec:
+  dependsOn:
+    - name: cert-manager # issues the plugin TLS certificates
+      namespace: cert-manager
+    - name: cloudnative-pg # operator that loads the plugin
+      namespace: cnpg-system
+  interval: 1h
+  path: ./kubernetes/apps/cnpg-system/barman-cloud-plugin/app
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: cnpg-system
+  # true so apps that declare an ObjectStore can depend on the CRD.
+  wait: true
