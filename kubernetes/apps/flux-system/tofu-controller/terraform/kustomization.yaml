@@ -1,0 +1,49 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./cloudflare.yaml
+  - ./buildkite.yaml
+patches:
+  - # Runner pod settings for every Terraform object
+    target:
+      group: infra.contrib.fluxcd.io
+      kind: Terraform
+    patch: |-
+      apiVersion: infra.contrib.fluxcd.io/v1alpha2
+      kind: Terraform
+      metadata:
+        name: _
+      spec:
+        runnerPodTemplate:
+          spec:
+            envFrom:
+              - secretRef:
+                  name: tofu-credentials # ../app/secret-credentials.sops.yaml
+            # shortcut: tf-runner v0.17.0 ships tofu 1.12.1. The modules declare >= 1.13 and the
+            # laptop runs 1.13.9, but tofu ignores required_version in .tf files. So this copies
+            # tofu 1.13.9 to /usr/local/sbin, which is before /usr/local/bin on the runner image
+            # PATH. Delete it when tf-runner ships tofu >= 1.13.
+            initContainers:
+              - name: tofu
+                image: ghcr.io/opentofu/opentofu:1.13.9@sha256:f5aef7f2632b490e3c289a239d7974497d0583f3df6bfa35e8eb31a367ee5ec0
+                command: ["cp", "/usr/local/bin/tofu", "/tofu/tofu"]
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop: ["ALL"]
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
+                  runAsUser: 65532
+                  seccompProfile:
+                    type: RuntimeDefault
+                volumeMounts:
+                  - name: tofu
+                    mountPath: /tofu
+            volumes:
+              - name: tofu
+                emptyDir: {}
+            volumeMounts:
+              - name: tofu
+                mountPath: /usr/local/sbin
+                readOnly: true
