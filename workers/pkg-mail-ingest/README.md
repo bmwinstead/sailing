@@ -21,7 +21,7 @@ If the upload fails, the Worker forwards the email to `FALLBACK_ADDR`. No email 
 
 ## Files
 
-- `wrangler.toml`: Worker name, variables, and the list of secrets.
+- `wrangler.toml`: Worker name and the settings for local development. OpenTofu deploys the Worker.
 - `src/index.js`: the Worker code.
 - `../../kubernetes/apps/default/stalwart`: the Stalwart deployment and its CNPG database (Flux).
 
@@ -234,29 +234,71 @@ curl -i https://pkg-ingest.winstead.io/admin
 3. Add one policy. Set the action to Service Auth. Include the service token from step 1.
 4. Save the application.
 
-## 5. Set the secrets and deploy the Worker
+## 5. Deploy the Worker with OpenTofu
 
-Run these commands in `workers/pkg-mail-ingest`:
+OpenTofu deploys the Worker. The module is `cloudflare/` (file `pkg_mail_worker.tf`). Do not run `wrangler deploy`.
+OpenTofu uploads `src/index.js`, and it sets the variables and the secrets as Worker bindings.
+It reads each value from AWS SSM Parameter Store (path `/sailing/tofu/`).
+The `wrangler.toml` file is for local development only. Its `REPLACE_ME` values are placeholders. OpenTofu does not read them.
+OpenTofu reads only `compatibility_date` from this file.
+
+| SSM parameter | Binding | Written by |
+|---|---|---|
+| `pkg-mail-worker-password` | `STALWART_PASSWORD` (secret) | Automatic. The Stalwart Job writes the app password. |
+| `pkg-mail-account-id` | `ACCOUNT_ID` | Automatic. The Stalwart Job writes it. |
+| `pkg-mail-inbox-id` | `INBOX_ID` | Automatic. The Stalwart Job writes it. |
+| `pkg-mail-access-client-id` | `CF_ACCESS_CLIENT_ID` (secret) | You, from step 4. |
+| `pkg-mail-access-client-secret` | `CF_ACCESS_CLIENT_SECRET` (secret) | You, from step 4. |
+| `pkg-mail-fallback-addr` | `FALLBACK_ADDR` | You. |
+
+OpenTofu sets two more bindings from variables with a default: `STALWART_USER` (`pkg_mail_address`, `packages@pkg.winstead.io`) and `JMAP_URL` (`pkg_mail_jmap_url`).
+
+Store the three values that you enter by hand. Each command asks for the value at a hidden prompt:
 
 ```sh
-npx wrangler secret put STALWART_USER             # the Worker account, for example packages@pkg.winstead.io
-npx wrangler secret put STALWART_PASSWORD         # the app password for the Worker
-npx wrangler secret put CF_ACCESS_CLIENT_ID
-npx wrangler secret put CF_ACCESS_CLIENT_SECRET
-npx wrangler deploy
+just aws put-secret pkg-mail-access-client-id
+just aws put-secret pkg-mail-access-client-secret
+just aws put-secret pkg-mail-fallback-addr
 ```
 
-Before you deploy, replace `REPLACE_ME` in `wrangler.toml`: `ACCOUNT_ID`, `INBOX_ID`, and `FALLBACK_ADDR`.
+Then deploy. Run all of these in the repository root:
+
+```sh
+export TF_VAR_account_id=ACCOUNT_ID   # the Cloudflare account ID
+just cloudflare init
+just cloudflare plan
+just cloudflare apply
+```
+
+`just cloudflare apply` fails if one SSM parameter does not exist. Run it after the Stalwart Job wrote its three parameters.
+The OpenTofu state holds all of these values in plain text. The state bucket is encrypted. See `cloudflare/provider.tf`.
+
+The Cloudflare API token needs these permissions, in addition to those in `cloudflare/provider.tf`:
+
+- Account > Workers Scripts > Edit
+- Zone > Email Routing Rules > Edit, on the zone `winstead.io`
+- Zone > Zone > Read, on the zone `winstead.io` (OpenTofu finds the zone ID by name)
+
+If you already deployed the Worker or made the Email Routing rule by hand, import them before the first apply.
+Otherwise the apply fails with a conflict:
+
+```sh
+cd cloudflare
+tofu import cloudflare_workers_script.pkg_mail_ingest ACCOUNT_ID/pkg-mail-ingest
+tofu import cloudflare_email_routing_rule.pkg_mail ZONE_ID/RULE_ID
+```
+
+Not verified: I did not run `plan` or `apply`, because the pod has no AWS or Cloudflare credentials.
+I checked the resource shapes only with `tofu validate` against provider 5.29.0.
+Check the first `plan`. Cloudflare may return the bindings in a different order, which shows as a change on each plan.
 
 ## 6. Set up Email Routing
 
 1. In the Cloudflare dashboard, open the zone `winstead.io`. Go to Email > Email Routing.
 2. Enable Email Routing for the subdomain `pkg.winstead.io`. Add the DNS records that Cloudflare shows.
 3. Go to Destination addresses. Add the `FALLBACK_ADDR` address. Open the verification email and confirm it.
-4. Add a custom address rule:
-   - Custom address: `packages@pkg.winstead.io`
-   - Action: Send to a Worker
-   - Destination: `pkg-mail-ingest`
+4. OpenTofu makes the rule that sends `packages@pkg.winstead.io` to the Worker `pkg-mail-ingest` (step 5).
+   Do not add this rule by hand. Check it in the dashboard after the apply.
 
 ## 7. Forward Proton email
 

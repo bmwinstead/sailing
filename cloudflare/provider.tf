@@ -5,6 +5,10 @@
 #      Dashboard > My Profile > API Tokens > Create Token > Create Custom Token
 #      - Account > Workers R2 Storage > Edit      (creates the R2 bucket)
 #      - Account > Account API Tokens > Edit      (creates the bucket-scoped token)
+#      For the pkg-mail Worker (pkg_mail_worker.tf, see ../workers/pkg-mail-ingest/README.md):
+#      - Account > Workers Scripts > Edit
+#      - Zone > Email Routing Rules > Edit        (zone winstead.io)
+#      - Zone > Zone > Read                       (zone winstead.io)
 #    Set "Account Resources" to Include > the account that owns the bucket.
 #    Edit includes Read, which the permission groups data source needs.
 # 2. Apply the aws module first (it creates the state bucket and the KMS key):
