@@ -14,6 +14,8 @@ spec:
   backendConfig:
     disable: true
   destroyResourcesOnDeletion: false
+  # Plans apply automatically. Remove approvePlan to return to manual approval.
+  approvePlan: auto
   # tofu-controller refuses a TF_VAR_* environment variable. Variables come in here.
   varsFrom:
     - kind: Secret
