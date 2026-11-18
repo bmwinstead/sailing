@@ -4,7 +4,7 @@ OpenTofu module for the AWS account `338208726210`. It manages these things:
 
 - The S3 bucket `winstead-tfstate` (region `us-east-2`). It stores the OpenTofu state of the `aws/` and `cloudflare/` modules.
 - The KMS key `5f27f89c-2f4e-49c9-9263-63596049bde5` and its alias `alias/sailing`. One key encrypts three things: the state bucket, SSM SecureString parameters and SOPS files.
-- Two IAM users with access keys: `sailing-tofu` and `sailing-flux-sops`.
+- Three IAM users with access keys: `sailing-tofu`, `sailing-flux-sops` and `sailing-stalwart`.
 
 The module does not manage the object `state` in the bucket. That object is the state of the retired `home` repo. Do not delete it. Do not use that key.
 
@@ -14,7 +14,7 @@ The `aws/` module stays on the laptop. Never give its credentials, or its state,
 
 ## IAM users
 
-The access keys and the secrets are sensitive outputs of this module. Read one with `tofu output -raw <name>`. The module writes no Kubernetes manifest and no secret file.
+The access keys and the secrets are sensitive outputs of this module. Read one with `tofu output -raw <name>`. The module writes no Kubernetes manifest and no secret file. The recipe `just aws sync-stalwart-secret` writes the SOPS file for `sailing-stalwart`.
 
 ### `sailing-tofu`
 
@@ -40,6 +40,17 @@ Flux uses this user to decrypt SOPS files. It can:
 - Call `kms:DescribeKey` on the key. This call has no encryption context, so it has no condition.
 
 This PR does not change `.sops.yaml` or any SOPS file. A later PR moves SOPS from age to KMS. That PR must add the key ARN as a KMS recipient in `.sops.yaml` with the context map `purpose: sops`. It must also re-encrypt the SOPS files. Until then, `sailing-flux-sops` cannot decrypt anything.
+
+### `sailing-stalwart`
+
+The Job `stalwart-pkg-credentials` in the cluster uses this user. The Job makes the app passwords of the mailbox `packages@pkg.winstead.io` and writes them to SSM. The user can:
+
+- Call `ssm:PutParameter` and `ssm:GetParameter` only on the parameters `/sailing/tofu/pkg-mail-*`.
+- Call `kms:Encrypt` and `kms:GenerateDataKey` on the key only if the encryption context `PARAMETER_ARN` is a parameter under `/sailing/tofu/pkg-mail-*`. SSM uses `kms:Encrypt` for a standard SecureString and `kms:GenerateDataKey` for an advanced one.
+
+It has no `kms:Decrypt`. The Job uses `ssm:GetParameter` without decryption only to find out if a parameter exists. It cannot read a secret back.
+
+The Job reads the access key from the Secret `stalwart-aws-credentials` in the namespace `default`. Write that Secret with `just aws sync-stalwart-secret` (see "Give the access key to Stalwart").
 
 ## Prerequisites
 
@@ -80,7 +91,7 @@ The live bucket uses SSE-S3 (`AES256`) and the live key has an old description. 
 - `aws_s3_bucket_server_side_encryption_configuration.tfstate` changes in place. The algorithm changes from `AES256` to `aws:kms` with the key ARN, and `bucket_key_enabled` changes from `false` to `true`. Old objects keep their encryption. New objects use the key.
 - `aws_kms_key.sops` changes in place. Only the description changes.
 - `aws_kms_alias.sailing` is created.
-- Two IAM users, two user policies and two access keys are created.
+- Three IAM users, three user policies and three access keys are created.
 
 Stop and read if the plan shows anything else, for example a replace or a destroy.
 
@@ -128,6 +139,17 @@ just aws put-secret cloudflare-api-token < token.txt
 
 The name can use letters, digits, dot, underscore and dash. Stdin input loses trailing newlines.
 
+## Give the access key to Stalwart
+
+`just aws sync-stalwart-secret` reads the `sailing-stalwart` access key and the region from the module outputs. It encrypts them with SOPS into `kubernetes/apps/default/stalwart/config/aws-credentials.sops.yaml`. The Secret is `stalwart-aws-credentials` with the keys `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION`.
+
+CAUTION: The Flux Kustomization `stalwart-config` lists this file. If the file is not in git, Flux cannot build `stalwart-config`, and the Stalwart settings do not apply. Commit the file before you merge the change that adds the Job, or in the same change.
+
+1. Run `just aws apply`. The plan creates `sailing-stalwart`, its policy and its access key.
+2. Run `just aws sync-stalwart-secret`.
+3. Commit `kubernetes/apps/default/stalwart/config/aws-credentials.sops.yaml`.
+4. Merge. Flux runs the Job. See `workers/pkg-mail-ingest/README.md` for the parameters that the Job writes.
+
 ## Order of operations for the owner
 
 1. Run `just aws plan`. Read the plan. Check the bucket encryption change, the new alias and the new users. On this account, do the bootstrap above instead of a plain `plan`.
@@ -143,6 +165,6 @@ The name can use letters, digits, dot, underscore and dash. Stdin input loses tr
 - **The check in step 2 shows changes.** The recipe keeps the local state files. Read the plan. Delete the local files when the state in S3 is correct: `rm -f terraform.tfstate terraform.tfstate.backup terraform.tfstate.bootstrap-backup`.
 - **The state in S3 is wrong.** The bucket keeps old versions of every object. Restore an older version of `aws/terraform.tfstate`. Then run `just aws check`.
 - **Step 1 refuses to run because the state exists in S3.** The bootstrap is already done. Run `just aws init`.
-- **An IAM access key leaked.** Run `tofu apply -replace=aws_iam_access_key.tofu` (or `.flux_sops`) in `aws/`. Then give the new key to its user.
+- **An IAM access key leaked.** Run `tofu apply -replace=aws_iam_access_key.tofu` (or `.flux_sops` or `.stalwart`) in `aws/`. Then give the new key to its user. For `.stalwart`, run `just aws sync-stalwart-secret` and commit the file.
 
 `prevent_destroy` is set on the bucket and on the key. `tofu destroy` stops with an error. Do not remove `prevent_destroy` without a reason.

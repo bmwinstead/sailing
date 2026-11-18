@@ -65,19 +65,17 @@ If you change the Secret, restart the pod: `kubectl --kubeconfig=kubeconfig -n d
    `kubectl --kubeconfig=kubeconfig -n default logs deploy/stalwart`
    A bad database password or host shows as a `Startup failed` error.
 
-### 1.3 Sign in and make the accounts
+### 1.3 Sign in and set the listeners
+
+Flux makes the domain `pkg.winstead.io`, the account `packages@pkg.winstead.io`, its two app passwords, and the admin role of your account (steps 1.4 and 1.6).
+Do not make them by hand.
 
 1. Open `https://stalwart.winstead.io/admin`. This is an internal HTTPRoute (LAN only).
    Sign in as `admin` with the password from step 1.1.
-2. If the sign-in page fails, use JMAP with `curl` and the same credential (step 2 shows the calls).
+2. If the sign-in page fails, use JMAP with `curl` and the same credential.
    The old bootstrap mode needed a port-forward to `http://localhost:8080/admin`. This mode may not accept it.
    The HelmRelease sets `STALWART_PUBLIC_URL` so that Stalwart trusts the host `stalwart.winstead.io`.
-3. Create the domain `pkg.winstead.io`.
-4. Create the account `packages@pkg.winstead.io`.
-5. Create two app passwords for that account. One is for the Worker. One is for Home Assistant.
-   Do not use the account password. It stops working when Pocket ID becomes the default directory (step 1.4).
-6. Make your personal account an admin (step 1.4). Keep the Secret `stalwart-admin`.
-7. Disable the SMTP, POP3, and ManageSieve listeners. Keep the HTTP listener on port 8080 and the IMAPS listener on port 993.
+3. Disable the SMTP, POP3, and ManageSieve listeners. Keep the HTTP listener on port 8080 and the IMAPS listener on port 993.
    The Kubernetes Service exposes only these two ports. Disable the other listeners to keep the config clean.
 
 Check that the HTTP listener on port 8080 still exists after you change the listeners. The Kubernetes probes and the Envoy routes use it.
@@ -101,6 +99,10 @@ The plan does these steps in this order:
 4. Create or update the internal OAuth client `stalwart`. The recovery admin signs in to the WebUI with it.
 5. Set the OAuth client ID `stalwart` and the scopes `profile email` on the Application `Stalwart Web Interface`.
 6. Reload the settings and the web applications. Stalwart does not restart.
+7. Create or update the domain `pkg.winstead.io`. The domain made by hand is kept.
+8. Set the role Administrator on the account `bmw@winstead.io`. Create the account `packages@pkg.winstead.io` with the role User and no password.
+   The plan finds each account by its name and its domain.
+   If `bmw` does not exist yet, the plan creates it without a password. The first Pocket ID sign-in then uses that account.
 
 The plan finds each object by its description or client ID. You can run the plan again. It does not make duplicates.
 If no Application has the description `Stalwart Web Interface`, the Job fails.
@@ -153,13 +155,9 @@ The display name comes from the `name` claim.
 2. Open `https://stalwart.winstead.io/admin`. Type `USERNAME@winstead.io`. The WebUI sends you to Pocket ID.
 3. Sign in at Pocket ID. Stalwart makes the account with the role User.
 4. Sign out. Sign in as `admin` with the password from step 1.1. The recovery admin always uses the Stalwart sign-in page.
-5. Set the role of the new account to Administrator. In the WebUI, open the account. With the CLI:
-
-   ```sh
-   stalwart-cli query Account
-   stalwart-cli update Account ACCOUNT_ID --json '{"roles":{"@type":"Admin"}}'
-   ```
-
+5. The plan gives the account `bmw` the role Administrator (step 8 of the plan).
+   For a different user name, change the `bmw` entry in `plan.ndjson`.
+   If the account did not exist when the Job ran, delete the Job to run the plan again (see above).
 6. Sign out. Sign in again with Pocket ID.
 
 Pocket ID groups do not give a Stalwart role. Stalwart uses groups only for shared access, and the plan does not read the `groups` claim.
@@ -179,27 +177,67 @@ Not verified: I did not run the Job against a live Stalwart. I did not test the 
 - `/var/lib/stalwart` is an empty directory that the pod loses at each restart. Stalwart keeps no state in it.
 - To change the data store, edit `config.json` in the HelmRelease. Stalwart restarts on the change.
 
+### 1.6 App passwords and ids in AWS SSM
+
+Pocket ID owns the account credentials, so the account `packages` has no password.
+App passwords still work, but Stalwart makes the secret and shows it one time.
+The Job `stalwart-pkg-credentials` makes the app passwords and stores them in AWS SSM Parameter Store (region `us-east-2`).
+OpenTofu reads them from there.
+
+The Job writes these parameters:
+
+| Parameter | Type | Value |
+| --- | --- | --- |
+| `/sailing/tofu/pkg-mail-worker-password` | SecureString (`alias/sailing`) | The app password `pkg-mail-worker` |
+| `/sailing/tofu/pkg-mail-ha-password` | SecureString (`alias/sailing`) | The app password `pkg-mail-home-assistant` |
+| `/sailing/tofu/pkg-mail-account-id` | String | The JMAP account ID of `packages` (`ACCOUNT_ID` of the Worker) |
+| `/sailing/tofu/pkg-mail-inbox-id` | String | The ID of its mailbox with the role `inbox` (`INBOX_ID` of the Worker) |
+
+The user name for both app passwords is `packages@pkg.winstead.io`.
+`just aws put-secret` is only for values that you type yourself. Do not use it for these parameters.
+
+The app password `pkg-mail-worker` can only sign in, upload a blob, and import an email (`authenticate`, `jmapBlobUpload`, `jmapEmailImport`).
+The app password `pkg-mail-home-assistant` can only sign in over IMAP and read mail. It cannot append, copy, move, delete, or expunge.
+
+For each app password, the Job does this:
+
+1. If Stalwart has exactly one app password with that description and the SSM parameter exists, it does nothing.
+2. If not, it deletes the app passwords with that description, makes a new one, and writes the secret to SSM.
+
+So after a Stalwart reset, the Job makes new app passwords and replaces the old values in SSM.
+The Job signs in as the recovery admin (Secret `stalwart-admin`) and acts on the account `packages`.
+It writes to SSM as the IAM user `sailing-stalwart` (Secret `stalwart-aws-credentials`, see `aws/README.md`).
+It never prints a secret.
+
+Before the first run, the owner must do these steps in this order:
+
+1. In `aws/`, run `just aws apply`. It creates the IAM user `sailing-stalwart`.
+2. Run `just aws sync-stalwart-secret`. It writes `kubernetes/apps/default/stalwart/config/aws-credentials.sops.yaml`.
+3. Commit that file. Then merge. Without the file, Flux cannot build `stalwart-config`.
+
+Check the Job:
+
+```sh
+kubectl --kubeconfig=kubeconfig -n default get job stalwart-pkg-credentials
+kubectl --kubeconfig=kubeconfig -n default logs job/stalwart-pkg-credentials
+```
+
+- The Job can start before the `stalwart-config` Job has made the account. Then it fails with `no account packages@pkg.winstead.io yet` and tries again.
+- The Job runs again only when its script changes or when you delete it.
+  After a Stalwart reset, delete it: `kubectl --kubeconfig=kubeconfig -n default delete job stalwart-pkg-credentials`.
+  Then run `flux --kubeconfig=kubeconfig -n default reconcile ks stalwart-config`.
+- To replace one app password, delete its SSM parameter and then delete the Job.
+
 ## 2. Get the account ID and the inbox ID
 
-Get the account ID. Use the Worker account and its app password:
+The Job `stalwart-pkg-credentials` writes both values to SSM (step 1.6).
+`/sailing/tofu/pkg-mail-account-id` is `ACCOUNT_ID`. `/sailing/tofu/pkg-mail-inbox-id` is `INBOX_ID`.
+Read them:
 
 ```sh
-curl -s -u 'packages@pkg.winstead.io:PASSWORD' https://stalwart.winstead.io/jmap/session | jq '.primaryAccounts'
+aws ssm get-parameters --region us-east-2 --names /sailing/tofu/pkg-mail-account-id /sailing/tofu/pkg-mail-inbox-id \
+  --query 'Parameters[].[Name,Value]' --output text
 ```
-
-Copy the value of `urn:ietf:params:jmap:mail`. This value is `ACCOUNT_ID`.
-
-Get the inbox ID:
-
-```sh
-curl -s -u 'packages@pkg.winstead.io:PASSWORD' https://stalwart.winstead.io/jmap/ \
-  -H 'content-type: application/json' \
-  -d '{"using":["urn:ietf:params:jmap:core","urn:ietf:params:jmap:mail"],
-       "methodCalls":[["Mailbox/get",{"accountId":"ACCOUNT_ID"},"0"]]}' \
-  | jq '.methodResponses[0][1].list[] | select(.role=="inbox") | .id'
-```
-
-This value is `INBOX_ID`. Put both values in `wrangler.toml`.
 
 ## 3. Deploy with OpenTofu
 
@@ -305,7 +343,12 @@ Install Mail and Packages with HACS. Use these settings:
 - Host: `stalwart.default.svc.cluster.local`
 - Port: `993`, SSL
 - Username: `packages@pkg.winstead.io`
-- Password: the Home Assistant app password
+- Password: the Home Assistant app password. Read it from SSM:
+
+  ```sh
+  aws ssm get-parameter --region us-east-2 --name /sailing/tofu/pkg-mail-ha-password --with-decryption --query Parameter.Value --output text
+  ```
+
 - Verify SSL: off. The certificate is self-signed and the connection stays inside the cluster.
 - Folder: `INBOX`
 - Forwarded emails: add the Proton addresses that forward mail.

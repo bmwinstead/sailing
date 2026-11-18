@@ -123,3 +123,45 @@ resource "aws_iam_user_policy" "flux_sops" {
 resource "aws_iam_access_key" "flux_sops" {
   user = aws_iam_user.flux_sops.name
 }
+
+# The stalwart-pkg-credentials Job in the cluster. It writes the app
+# passwords and the JMAP ids of the package mailbox. It cannot read the
+# secrets back, so it has no kms:Decrypt.
+resource "aws_iam_user" "stalwart" {
+  name = "sailing-stalwart"
+}
+
+data "aws_iam_policy_document" "stalwart" {
+  # GetParameter without decryption tells the Job if a parameter exists.
+  statement {
+    sid       = "WritePkgMailParameters"
+    actions   = ["ssm:PutParameter", "ssm:GetParameter"]
+    resources = ["${local.ssm_tofu_arn}/pkg-mail-*"]
+  }
+
+  # SSM encrypts a standard SecureString with kms:Encrypt and an advanced one
+  # with kms:GenerateDataKey. The encryption context is PARAMETER_ARN, the
+  # same key as for decryption. Source: AWS Systems Manager User Guide, "AWS
+  # KMS encryption for Parameter Store SecureString parameters".
+  statement {
+    sid       = "EncryptPkgMailParameters"
+    actions   = ["kms:Encrypt", "kms:GenerateDataKey"]
+    resources = [aws_kms_key.sops.arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "kms:EncryptionContext:PARAMETER_ARN"
+      values   = ["${local.ssm_tofu_arn}/pkg-mail-*"]
+    }
+  }
+}
+
+resource "aws_iam_user_policy" "stalwart" {
+  name   = "sailing-stalwart"
+  user   = aws_iam_user.stalwart.name
+  policy = data.aws_iam_policy_document.stalwart.json
+}
+
+resource "aws_iam_access_key" "stalwart" {
+  user = aws_iam_user.stalwart.name
+}
