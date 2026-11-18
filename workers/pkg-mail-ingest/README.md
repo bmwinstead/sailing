@@ -279,7 +279,7 @@ OpenTofu also makes these objects:
 - The Access service token `pkg-mail-worker`.
 - The Access policy `pkg-mail-worker`. It uses the action Service Auth (`non_identity`) and allows only that token.
 - The Access application for `pkg-ingest.winstead.io`. It denies every other request with a 401 and has no login page.
-- Email Routing for the zone `bmwinstead.com` (`cloudflare_email_routing_dns`).
+- Email Routing for the zone `bmwinstead.com` (`cloudflare_email_routing_settings`).
 - The Email Routing destination address `FALLBACK_ADDR`.
 
 The Kubernetes side is in `kubernetes/apps/default/stalwart/app/helmrelease.yaml`.
@@ -331,12 +331,12 @@ The variable `pkg_mail_zone_name` refuses `winstead.io` and its subdomains.
 OpenTofu turns on Email Routing for `bmwinstead.com`. Cloudflare then makes and locks the MX and SPF records.
 OpenTofu makes the rule that sends `packages@bmwinstead.com` to the Worker `pkg-mail-ingest` (step 3).
 OpenTofu also makes the destination address `FALLBACK_ADDR`. Do not add these by hand.
-If Email Routing is already on for the zone, import it first: `tofu import cloudflare_email_routing_dns.pkg_mail ZONE_ID`.
+If Email Routing is already on for the zone, import it first: `tofu import cloudflare_email_routing_settings.pkg_mail ZONE_ID`.
 
 One step stays manual: after the first apply, Cloudflare sends a verification email to `FALLBACK_ADDR`.
 Open the email and confirm it. The Worker cannot forward to the address before you confirm it.
 
-Not verified: the provider docs do not say that `cloudflare_email_routing_dns` makes the DKIM record.
+Not verified: the provider docs do not say that `cloudflare_email_routing_settings` makes the DKIM record.
 After the first apply, open Email > Email Routing in the dashboard for `bmwinstead.com`.
 Check that the status is Ready and that the DNS records are there.
 
