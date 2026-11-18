@@ -14,3 +14,9 @@ variable "bucket_location" {
   type        = string
   default     = "enam"
 }
+
+variable "aws_region" {
+  description = "AWS region of the SSM parameter that holds the Cloudflare API token"
+  type        = string
+  default     = "us-east-2"
+}
