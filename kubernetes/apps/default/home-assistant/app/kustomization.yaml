@@ -7,4 +7,7 @@ resources:
   - ./configmap.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
+  - ./objectstore.yaml
   - ./oidcclient.yaml
+  - ./scheduledbackup.yaml
+  - ./secret-r2.sops.yaml
