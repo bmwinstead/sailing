@@ -5,7 +5,7 @@
 - Each `Terraform` object runs the module at `./cloudflare` or `./buildkite` from the GitRepository `flux-system` one time each hour.
 - The modules keep their own S3 backend in `backend.tf` (`backendConfig.disable: true`).
 - There is no `Terraform` object for `aws/`. That module stays on the laptop.
-- The runner pods get their environment from the Secret `tofu-credentials` (`app/secret-credentials.sops.yaml`). It has the keys `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` and `TF_VAR_account_id`. The AWS keys are for the IAM user `sailing-tofu` (see `aws/README.md`).
+- The runner pods get their environment from the Secret `tofu-credentials` (`app/secret-credentials.sops.yaml`). It has the keys `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_DEFAULT_REGION` and `account_id`. The runner reads the AWS keys as environment variables. The `cloudflare` object reads `account_id` through `varsFrom`, because tofu-controller refuses an environment variable named `TF_VAR_*`. The AWS keys are for the IAM user `sailing-tofu` (see `aws/README.md`).
 - The runner image `tf-runner:v0.17.0` has OpenTofu 1.12.1. The modules declare 1.13 or later, and the laptop uses 1.13.9 (`.mise.toml`). OpenTofu does not enforce `required_version` in `.tf` files, so 1.12.1 would run the modules without an error. An init container copies OpenTofu 1.13.9 into the runner pod (see `terraform/kustomization.yaml`). Delete it when `tf-runner` has OpenTofu 1.13 or later.
 - `approvePlan` is not set, so a human approves each plan.
 - `destroyResourcesOnDeletion` is `false`. When you delete a `Terraform` object, the controller does not destroy its resources.

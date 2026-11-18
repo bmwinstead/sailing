@@ -14,3 +14,9 @@ spec:
   backendConfig:
     disable: true
   destroyResourcesOnDeletion: false
+  # tofu-controller refuses a TF_VAR_* environment variable. Variables come in here.
+  varsFrom:
+    - kind: Secret
+      name: tofu-credentials # ../app/secret-credentials.sops.yaml
+      varsKeys:
+        - account_id
