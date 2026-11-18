@@ -21,3 +21,9 @@ variable "kms_key_id" {
   type        = string
   default     = "5f27f89c-2f4e-49c9-9263-63596049bde5"
 }
+
+variable "ssm_path_prefix" {
+  description = "SSM Parameter Store path for the secrets that the cluster OpenTofu runner reads"
+  type        = string
+  default     = "/sailing/tofu"
+}
