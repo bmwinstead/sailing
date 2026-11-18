@@ -1,0 +1,4 @@
+# Copy this file to local.auto.tfvars. Git ignores that copy.
+# OpenTofu loads every *.auto.tfvars file on its own.
+# The tofu-controller in the cluster does not read it. It gets account_id from a Secret.
+account_id = "CLOUDFLARE_ACCOUNT_ID" # Dashboard > account Overview > Account ID
