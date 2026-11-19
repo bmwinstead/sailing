@@ -151,14 +151,40 @@ data:
         max_columns: 4
         sections:
           - type: grid
-            column_span: 4
+            column_span: 1
             cards:
-              - {type: clock, clock_size: large, time_format: "12", show_seconds: false, grid_options: {columns: 16, rows: 4}}
+              - {type: clock, clock_size: medium, time_format: "12", show_seconds: false, grid_options: {columns: full, rows: 2}}
               - type: markdown
-                grid_options: {columns: 12, rows: 4}
+                grid_options: {columns: full, rows: 2}
                 content: |
-                  # {{ now().strftime('%A, %B %-d') }}
-              - {type: weather-forecast, entity: weather.home, forecast_type: daily, grid_options: {columns: 20, rows: 4}}
+                  ## {{ now().strftime('%A, %B %-d') }}
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: weather-forecast, entity: weather.home, forecast_type: daily, grid_options: {columns: full, rows: 4}}
+          - type: grid
+            column_span: 1
+            cards:
+              # Unknown and unavailable states count as 0.
+              - type: markdown
+                grid_options: {columns: full, rows: 4}
+                content: |
+                  {%- set ns = namespace(on=0, got=0, bad=0) %}
+                  {%- for s in ['sensor.packages_bmwinstead_com_mail_amazon_packages_delivering', 'sensor.packages_bmwinstead_com_mail_ups_delivering', 'sensor.packages_bmwinstead_com_mail_fedex_delivering', 'sensor.packages_bmwinstead_com_mail_usps_delivering'] %}{% set ns.on = ns.on + states(s) | int(0) %}{% endfor %}
+                  {%- for s in ['sensor.packages_bmwinstead_com_mail_amazon_packages_delivered', 'sensor.packages_bmwinstead_com_mail_ups_delivered', 'sensor.packages_bmwinstead_com_mail_fedex_delivered', 'sensor.packages_bmwinstead_com_mail_usps_delivered'] %}{% set ns.got = ns.got + states(s) | int(0) %}{% endfor %}
+                  {%- for s in ['sensor.packages_bmwinstead_com_mail_amazon_exception', 'sensor.packages_bmwinstead_com_mail_ups_exception', 'sensor.packages_bmwinstead_com_mail_fedex_exception', 'sensor.packages_bmwinstead_com_mail_usps_exception'] %}{% set ns.bad = ns.bad + states(s) | int(0) %}{% endfor %}
+                  {%- set mail = states('sensor.packages_bmwinstead_com_mail_usps_mail') | int(0) -%}
+                  <ha-icon icon="mdi:package-variant-closed"></ha-icon> **Packages**
+                  {% if ns.on > 0 %}## {{ ns.on }} on the way{% else %}## No packages on the way{% endif %}
+                  {%- if ns.got > 0 %}
+                  {{ ns.got }} delivered
+                  {%- endif %}
+                  {%- if mail > 0 %}
+                  {{ mail }} {{ 'piece' if mail == 1 else 'pieces' }} of mail
+                  {%- endif %}
+                  {%- if ns.bad > 0 %}
+                  **Delivery problem: {{ ns.bad }}**
+                  {%- endif %}
           - type: grid
             cards:
               - {type: heading, heading: Calendar, heading_style: title, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}, grid_options: {columns: full, rows: 1}}
