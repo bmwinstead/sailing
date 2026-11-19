@@ -58,6 +58,7 @@ The build stops if the variable is empty. The image has no password, so it must 
 3. Select **Run workflow**.
 
 The workflow also runs on each push to `main` that changes `pi/living-room/**`.
+A pull request that changes `pi/living-room/**` builds the image and uploads it as an artifact, and only pushes to `main` and manual runs make a release.
 The build runs on an `ubuntu-24.04-arm` runner and takes a long time.
 
 The workflow does these steps:

@@ -8,6 +8,12 @@ on:
     paths:
       - "pi/living-room/**"
       - ".github/workflows/living-room-image.yaml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "pi/living-room/**"
+      - ".github/workflows/living-room-image.yaml"
   workflow_dispatch:
 
 permissions: {}
@@ -81,6 +87,7 @@ jobs:
   release:
     name: Publish release
     needs: build
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: write
