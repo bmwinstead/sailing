@@ -66,7 +66,8 @@ jobs:
       - name: Compress image
         run: |
           mkdir dist
-          mapfile -t images < <(find work -name 'living-room*.img' -not -name '*.sparse')
+          shopt -s nullglob
+          images=(work/deploy-*/living-room*.img)
           if [ "${#images[@]}" -ne 1 ]; then
             echo "::error::Expected one image, found ${#images[@]}: ${images[*]}"
             exit 1
