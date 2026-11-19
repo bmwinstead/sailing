@@ -22,6 +22,15 @@ COPY --from=devbox /usr/local/bin/kubectl /usr/local/bin/talosctl /usr/local/bin
      /usr/local/bin/
 COPY --from=devbox /usr/local/libexec/gh-extensions /usr/local/libexec/gh-extensions
 
+# Docker CLI, buildx and compose, for the dind sidecar (see the Deployment).
+# Copied from the official cli image, pinned by digest (the digest is the
+# integrity check, and it covers amd64 and arm64). No daemon here: the CLI
+# talks to the sidecar through DOCKER_HOST. Socket group 1000 = `paseo`.
+COPY --from=docker.io/library/docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509b7d7a7030740d6d \
+     /usr/local/bin/docker /usr/local/bin/docker
+COPY --from=docker.io/library/docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509b7d7a7030740d6d \
+     /usr/local/libexec/docker/cli-plugins /usr/local/libexec/docker/cli-plugins
+
 # Entire CLI + git-remote-entire, for cloning entire:// repos (e.g. performance).
 # `entire auth login` is still interactive; credentials live on the home PVC.
 ARG ENTIRE_VERSION=0.13.1
