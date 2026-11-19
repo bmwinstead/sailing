@@ -1,0 +1,7 @@
+# Do not start swayidle with a timeout here. Home Assistant sleeps and wakes
+# the screen over MQTT, through touchkio.
+
+# 1920x1080 landscape on every output.
+for output in $(wlr-randr | sed -n 's/^\([^ ]\+\) .*/\1/p'); do
+  wlr-randr --output "$output" --mode 1920x1080 --transform normal
+done

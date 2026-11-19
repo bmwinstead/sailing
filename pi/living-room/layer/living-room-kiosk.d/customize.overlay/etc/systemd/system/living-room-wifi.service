@@ -1,0 +1,12 @@
+[Unit]
+Description=Import a Wi-Fi profile from the boot partition
+ConditionPathExists=/boot/firmware/wifi.nmconnection
+RequiresMountsFor=/boot/firmware
+Before=NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/living-room-wifi-import
+
+[Install]
+WantedBy=multi-user.target
