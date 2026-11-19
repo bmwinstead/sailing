@@ -1,0 +1,15 @@
+[Unit]
+Description=TouchKio
+After=graphical.target
+Wants=network-online.target
+
+[Service]
+# touchkio exits without DISPLAY. labwc uses these names for the first session.
+Environment=DISPLAY=:0
+Environment=WAYLAND_DISPLAY=wayland-0
+ExecStart=/usr/bin/touchkio
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

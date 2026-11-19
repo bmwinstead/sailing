@@ -1,0 +1,46 @@
+#!/bin/bash
+# Put the session files and the touchkio arguments in the home of the login user.
+set -eu
+
+rootfs=$1
+user=$IGconf_device_user1
+home="$rootfs/home/$user"
+
+rsync -a "$LAYER_DOTD/home/" "$home/"
+
+# The URLs have no secret. The broker is anonymous, so there is no user or password.
+mkdir -p "$home/.config/touchkio"
+cat > "$home/.config/touchkio/Arguments.json" <<JSON
+{
+  "web_url": ["${IGconf_kiosk_web_url}"],
+  "mqtt_url": "${IGconf_kiosk_mqtt_url}",
+  "app_kiosk": "fullscreen"
+}
+JSON
+
+# Cursor theme with one transparent pixel. labwc has no setting to hide the cursor.
+theme="$home/.local/share/icons/blank"
+mkdir -p "$theme/cursors"
+printf '[Icon Theme]\nName=blank\n' > "$theme/index.theme"
+python3 - "$theme/cursors/left_ptr" <<'PY'
+import struct, sys
+image = struct.pack("<9I", 36, 0xFFFD0002, 1, 1, 1, 1, 0, 0, 0) + struct.pack("<I", 0)
+header = b"Xcur" + struct.pack("<3I", 16, 0x10000, 1)
+toc = struct.pack("<3I", 0xFFFD0002, 1, 16 + 12)
+open(sys.argv[1], "wb").write(header + toc + image)
+PY
+for name in default arrow pointer hand1 hand2 text xterm crosshair grab grabbing wait watch; do
+  ln -sf left_ptr "$theme/cursors/$name"
+done
+
+# Log the login user in to the desktop at boot.
+mkdir -p "$rootfs/etc/lightdm/lightdm.conf.d"
+cat > "$rootfs/etc/lightdm/lightdm.conf.d/50-living-room.conf" <<CONF
+[Seat:*]
+greeter-session=pi-greeter-labwc
+autologin-user=$user
+autologin-user-timeout=0
+autologin-session=rpd-labwc
+CONF
+
+chroot "$rootfs" chown -R "$user": "/home/$user"

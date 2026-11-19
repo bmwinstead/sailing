@@ -1,0 +1,52 @@
+# METABEGIN
+# X-Env-Layer-Name: living-room-kiosk
+# X-Env-Layer-Version: 1.0.0
+# X-Env-Layer-Category: app
+# X-Env-Layer-Desc: Living room Home Assistant kiosk. Installs the Raspberry Pi
+#  desktop (labwc), the pinned touchkio package, and the user session files.
+#  LightDM logs the first user in to the desktop. A systemd user service starts
+#  touchkio.
+# X-Env-Layer-Requires: device-user-admin,network-manager
+#
+# X-Env-VarPrefix: kiosk
+#
+# X-Env-Var-touchkio_version:
+# X-Env-Var-touchkio_version-Desc: Version of the touchkio arm64 .deb package
+#  from https://github.com/leukipp/touchkio/releases
+# X-Env-Var-touchkio_version-Required: y
+# X-Env-Var-touchkio_version-Valid: regex:^[0-9]+\.[0-9]+\.[0-9]+$
+# X-Env-Var-touchkio_version-Set: n
+#
+# X-Env-Var-touchkio_sha256:
+# X-Env-Var-touchkio_sha256-Desc: SHA-256 of the touchkio .deb package
+# X-Env-Var-touchkio_sha256-Required: y
+# X-Env-Var-touchkio_sha256-Valid: regex:^[0-9a-f]{64}$
+# X-Env-Var-touchkio_sha256-Set: n
+#
+# X-Env-Var-web_url:
+# X-Env-Var-web_url-Desc: Dashboard URL that touchkio shows.
+# X-Env-Var-web_url-Required: y
+# X-Env-Var-web_url-Valid: regex:^https?://[a-zA-Z0-9.:/_-]+$
+# X-Env-Var-web_url-Set: n
+#
+# X-Env-Var-mqtt_url:
+# X-Env-Var-mqtt_url-Desc: MQTT broker URL. The broker must allow anonymous
+#  clients. The image has no user name and no password.
+# X-Env-Var-mqtt_url-Required: y
+# X-Env-Var-mqtt_url-Valid: regex:^mqtts?://[a-zA-Z0-9.:_-]+$
+# X-Env-Var-mqtt_url-Set: n
+# METAEND
+---
+mmdebstrap:
+  packages:
+    - rpd-wayland-core
+    - pixtrix-theme
+    - pixtrix-icons
+    - fonts-nunito-sans
+    - swayidle
+    - wlopm
+    - wlr-randr
+    - ddcutil
+  customize-hooks:
+    - $BDEBSTRAP_HOOKS/enable-units "$1" living-room-wifi
+    - chroot $1 systemctl set-default graphical.target
