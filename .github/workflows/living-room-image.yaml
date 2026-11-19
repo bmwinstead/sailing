@@ -1,0 +1,106 @@
+---
+name: "Build living room image"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "pi/living-room/**"
+      - ".github/workflows/living-room-image.yaml"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    name: Build image
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Checkout rpi-image-gen
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: raspberrypi/rpi-image-gen
+          ref: d2d5705bcb37284c4b08c0ce43c039b1f1004e25 # v2.9.0
+          path: rpi-image-gen
+          persist-credentials: false
+
+      - name: Install build dependencies
+        working-directory: rpi-image-gen
+        run: |
+          sudo apt-get update
+          sudo chmod o+x /home/runner
+          sudo ./install_deps.sh
+
+      - name: Write SSH public key
+        env:
+          SSH_PUBKEY: ${{ vars.LIVING_ROOM_SSH_PUBKEY }}
+        run: |
+          if [ -z "$SSH_PUBKEY" ]; then
+            echo "::error::Set the repository variable LIVING_ROOM_SSH_PUBKEY. The image has no password, so it needs a key."
+            exit 1
+          fi
+          printf '%s\n' "$SSH_PUBKEY" > "$RUNNER_TEMP/authorized_keys"
+
+      - name: Build image
+        run: |
+          ./rpi-image-gen/rpi-image-gen build \
+            -S "$GITHUB_WORKSPACE/pi/living-room" \
+            -c living-room.yaml \
+            -- IGconf_ssh_pubkey_user1="$RUNNER_TEMP/authorized_keys"
+
+      - name: Compress image
+        run: |
+          mkdir dist
+          mapfile -t images < <(find work -name 'living-room*.img' -not -name '*.sparse')
+          if [ "${#images[@]}" -ne 1 ]; then
+            echo "::error::Expected one image, found ${#images[@]}: ${images[*]}"
+            exit 1
+          fi
+          xz -T0 -6 --stdout "${images[0]}" > dist/living-room.img.xz
+          (cd dist && sha256sum living-room.img.xz > living-room.img.xz.sha256)
+          ls -lh dist
+
+      - name: Upload image
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: living-room-image
+          path: dist/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download image
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: living-room-image
+          path: dist
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: living-room-image-${{ github.run_number }}
+          TARGET: ${{ github.sha }}
+        run: |-
+          gh release create "$TAG" dist/living-room.img.xz dist/living-room.img.xz.sha256 \
+            --repo "$REPO" \
+            --target "$TARGET" \
+            --title "Living room image $TAG" \
+            --latest=false \
+            --notes "Raspberry Pi 4 image for the living room display. See pi/living-room/README.md to flash it."
