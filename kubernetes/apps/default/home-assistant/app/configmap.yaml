@@ -156,8 +156,10 @@ data:
               - {type: clock, clock_size: medium, time_format: "12", show_seconds: false, grid_options: {columns: full, rows: 2}}
               - type: markdown
                 grid_options: {columns: full, rows: 2}
+                # The HA markdown card allows <center> but not style, so the <br> nudges the date down.
                 content: |
-                  ## {{ now().strftime('%A, %B %-d') }}
+                  <br>
+                  <center><h2>{{ now().strftime('%A, %B %-d') }}</h2></center>
           - type: grid
             column_span: 2
             cards:
