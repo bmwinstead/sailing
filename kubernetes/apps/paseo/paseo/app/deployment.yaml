@@ -117,6 +117,10 @@ spec:
             - --group=1000
           securityContext:
             privileged: true # dockerd, and kind nodes, need it
+            # The pod default is uid 1000, which makes the dind entrypoint pick rootless mode.
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
           volumeMounts:
             - name: docker-sock
               mountPath: /var/run/docker-sock
