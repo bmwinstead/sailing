@@ -153,27 +153,27 @@ data:
           - type: grid
             column_span: 4
             cards:
+              - {type: clock, clock_size: large, time_format: "12", show_seconds: false, grid_options: {columns: 16, rows: 3}}
               - type: markdown
-                grid_options: {columns: 6}
+                grid_options: {columns: 12, rows: 3}
                 content: |
-                  # {{ now().strftime('%-I:%M %p') }}
-                  ## {{ now().strftime('%A, %B %-d') }}
-              - {type: weather-forecast, entity: weather.home, forecast_type: daily, grid_options: {columns: 6}}
+                  # {{ now().strftime('%A, %B %-d') }}
+              - {type: weather-forecast, entity: weather.home, forecast_type: daily, grid_options: {columns: 20, rows: 3}}
           - type: grid
             cards:
-              - {type: button, name: Calendar, icon: mdi:calendar, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/calendar}, grid_options: {columns: full, rows: 1}}
-              - {type: calendar, initial_view: listWeek, entities: [calendar.bmwinstead_gmail_com_family, calendar.bmwinstead_gmail_com_home], grid_options: {columns: full, rows: 9}}
+              - {type: tile, name: Calendar, icon: mdi:calendar, vertical: false, tap_action: {action: navigate, navigation_path: /living-room/calendar}, grid_options: {columns: full, rows: 1}}
+              - {type: calendar, initial_view: listWeek, entities: [calendar.bmwinstead_gmail_com_family, calendar.bmwinstead_gmail_com_home], grid_options: {columns: full, rows: 8}}
           - type: grid
             column_span: 2
             cards:
-              - {type: button, name: Photos, icon: mdi:image-multiple, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 1}}
-              - {type: picture-entity, entity: camera.album_slideshow_tablet_display, show_name: false, show_state: false, fit_mode: cover, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 9}}
+              - {type: tile, name: Photos, icon: mdi:image-multiple, vertical: false, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 1}}
+              - {type: picture-entity, entity: camera.album_slideshow_tablet_display, show_name: false, show_state: false, fit_mode: cover, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 8}}
           - type: grid
             cards:
-              - {type: button, name: Dinner this week, icon: mdi:silverware-fork-knife, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/meals}, grid_options: {columns: full, rows: 1}}
+              - {type: tile, name: Dinner this week, icon: mdi:silverware-fork-knife, vertical: false, tap_action: {action: navigate, navigation_path: /living-room/meals}, grid_options: {columns: full, rows: 1}}
               # TODO: a custom integration will provide the meal plan later.
               - {type: markdown, content: "Meals: coming soon", grid_options: {columns: full, rows: 2}}
-              - {type: button, name: Shopping list, icon: mdi:cart, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/lists}, grid_options: {columns: full, rows: 1}}
+              - {type: tile, name: Shopping list, icon: mdi:cart, vertical: false, tap_action: {action: navigate, navigation_path: /living-room/lists}, grid_options: {columns: full, rows: 1}}
               - {type: todo-list, entity: todo.shopping_list, grid_options: {columns: full, rows: 5}}
           - type: grid
             column_span: 4
@@ -181,6 +181,7 @@ data:
               - type: grid
                 columns: 6
                 square: false
+                grid_options: {columns: full, rows: 2}
                 cards:
                   - {<<: [&btn {type: button, icon_height: 40px}, &on {entity: weather.home, color: accent}], name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
                   - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
@@ -205,6 +206,7 @@ data:
               - type: grid
                 columns: 6
                 square: false
+                grid_options: {columns: full, rows: 2}
                 cards:
                   - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
                   - {<<: [*btn, *on], name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
@@ -230,6 +232,7 @@ data:
               - type: grid
                 columns: 6
                 square: false
+                grid_options: {columns: full, rows: 2}
                 cards:
                   - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
                   - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
@@ -255,6 +258,7 @@ data:
               - type: grid
                 columns: 6
                 square: false
+                grid_options: {columns: full, rows: 2}
                 cards:
                   - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
                   - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
@@ -283,6 +287,7 @@ data:
               - type: grid
                 columns: 6
                 square: false
+                grid_options: {columns: full, rows: 2}
                 cards:
                   - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
                   - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
