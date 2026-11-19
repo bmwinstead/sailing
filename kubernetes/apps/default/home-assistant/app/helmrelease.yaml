@@ -124,3 +124,6 @@ spec:
           - path: /config/projector.py
             subPath: projector.py
             readOnly: true
+          - path: /config/dashboards/living-room.yaml
+            subPath: living-room.yaml
+            readOnly: true

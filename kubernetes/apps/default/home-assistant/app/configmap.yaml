@@ -78,6 +78,15 @@ data:
     script: !include scripts.yaml
     scene: !include scenes.yaml
 
+    lovelace:
+      dashboards:
+        living-room:
+          mode: yaml
+          filename: dashboards/living-room.yaml
+          title: Living Room
+          icon: mdi:television
+          show_in_sidebar: false
+
   projector.py: |-
     #!/usr/bin/env python3
     """Sony VPL-VW295ES ADCP client. Usage: projector.py status | set <command> <value> | selftest"""
@@ -129,3 +138,156 @@ data:
             print("ok")
         else:
             sys.exit(__doc__)
+
+  living-room.yaml: |-
+    # Living room kiosk, 1920x1080 landscape. Core cards only.
+    # Each view repeats the bottom nav bar. The active view gets entity + color,
+    # because the button card colors its icon from an entity that is active.
+    title: Living Room
+    views:
+      - title: Home
+        path: home
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              - type: markdown
+                grid_options: {columns: 6}
+                content: |
+                  # {{ now().strftime('%-I:%M %p') }}
+                  ## {{ now().strftime('%A, %B %-d') }}
+              - {type: weather-forecast, entity: weather.home, forecast_type: daily, grid_options: {columns: 6}}
+          - type: grid
+            cards:
+              - {type: button, name: Calendar, icon: mdi:calendar, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/calendar}, grid_options: {columns: full, rows: 1}}
+              - {type: calendar, initial_view: listWeek, entities: [calendar.bmwinstead_gmail_com_family, calendar.bmwinstead_gmail_com_home], grid_options: {columns: full, rows: 9}}
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: button, name: Photos, icon: mdi:image-multiple, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 1}}
+              - {type: picture-entity, entity: camera.album_slideshow_tablet_display, show_name: false, show_state: false, fit_mode: cover, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 9}}
+          - type: grid
+            cards:
+              - {type: button, name: Dinner this week, icon: mdi:silverware-fork-knife, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/meals}, grid_options: {columns: full, rows: 1}}
+              # TODO: a custom integration will provide the meal plan later.
+              - {type: markdown, content: "Meals: coming soon", grid_options: {columns: full, rows: 2}}
+              - {type: button, name: Shopping list, icon: mdi:cart, icon_height: 24px, tap_action: {action: navigate, navigation_path: /living-room/lists}, grid_options: {columns: full, rows: 1}}
+              - {type: todo-list, entity: todo.shopping_list, grid_options: {columns: full, rows: 5}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                cards:
+                  - {<<: [&btn {type: button, icon_height: 40px}, &on {entity: weather.home, color: accent}], name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Calendar
+        path: calendar
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              - {type: calendar, entities: [calendar.bmwinstead_gmail_com_family, calendar.bmwinstead_gmail_com_home, calendar.donetick_chores_chores], grid_options: {columns: full, rows: 10}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: [*btn, *on], name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Meals
+        path: meals
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              # TODO: a custom integration will provide the meal plan later.
+              - {type: markdown, content: "Meals: coming soon", grid_options: {columns: full, rows: 8}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: [*btn, *on], name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Photos
+        path: photos
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              - {type: picture-entity, entity: camera.album_slideshow_tablet_display, show_name: false, show_state: false, fit_mode: contain, grid_options: {columns: full, rows: 9}}
+              - {type: tile, entity: switch.album_slideshow_tablet_display_pause_slideshow, name: Pause slideshow, tap_action: {action: toggle}, grid_options: {columns: full, rows: 1}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: [*btn, *on], name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Lists
+        path: lists
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: todo-list, entity: todo.shopping_list, grid_options: {columns: full, rows: 9}}
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: todo-list, entity: todo.all_tasks, grid_options: {columns: full, rows: 9}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: [*btn, *on], name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
