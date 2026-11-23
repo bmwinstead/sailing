@@ -7,3 +7,4 @@ resources:
   - ./ocirepository.yaml
   - ./oidcclient.yaml
   - ./securitypolicy.yaml
+  - ./secret.sops.yaml
