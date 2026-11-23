@@ -29,10 +29,44 @@ checksum = "sha256:01120ea2cbf0463d4c6bd767f99f3271bbed1cdc8a9aa718a76ba1fe4f019
 url = "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-darwin-arm64.tar.gz"
 provenance = "github-attestations"
 
+[tools.age."platforms.macos-x64"]
+checksum = "sha256:2b233301ad21ab7b1eabd9ae1198a164005fa4928fcdd745d47c39f8593209d7"
+url = "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-darwin-amd64.tar.gz"
+url_api = "https://api.github.com/repos/FiloSottile/age/releases/assets/343881260"
+provenance = "github-attestations"
+
 [tools.age."platforms.windows-x64"]
 checksum = "sha256:c56e8ce22f7e80cb85ad946cc82d198767b056366201d3e1a2b93d865be38154"
 url = "https://github.com/FiloSottile/age/releases/download/v1.3.1/age-v1.3.1-windows-amd64.zip"
 provenance = "github-attestations"
+
+[[tools.aws-cli]]
+version = "2.40.3"
+backend = "aqua:aws/aws-cli"
+
+[tools.aws-cli."platforms.linux-arm64"]
+checksum = "sha256:4c5f080c6c294eb0da77734c4520f5b5089cf45a4ee757ca34ddf7f9e512e66a"
+url = "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.40.3.zip"
+
+[tools.aws-cli."platforms.linux-arm64-musl"]
+checksum = "sha256:4c5f080c6c294eb0da77734c4520f5b5089cf45a4ee757ca34ddf7f9e512e66a"
+url = "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.40.3.zip"
+
+[tools.aws-cli."platforms.linux-x64"]
+checksum = "sha256:4770c06c4ecfc8ba94b60d89e6c7018ab7ea2cf5341b1ef05f6f93c5d6e8b705"
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.40.3.zip"
+
+[tools.aws-cli."platforms.linux-x64-musl"]
+checksum = "sha256:4770c06c4ecfc8ba94b60d89e6c7018ab7ea2cf5341b1ef05f6f93c5d6e8b705"
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.40.3.zip"
+
+[tools.aws-cli."platforms.macos-arm64"]
+checksum = "blake3:4ef0dc2c2a62870b941c96107ee833ac8d6555b2bfe02174b027f616b23e1c3d"
+url = "https://awscli.amazonaws.com/AWSCLIV2-2.40.3.pkg"
+
+[tools.aws-cli."platforms.macos-x64"]
+checksum = "sha256:be032742ff205f7f2d7c189010bbb1f3891d0a67be0b1df0fe9d3e7f5fc5ad30"
+url = "https://awscli.amazonaws.com/AWSCLIV2-2.40.3.pkg"
 
 [[tools.cloudflared]]
 version = "2026.5.0"
@@ -631,6 +665,48 @@ url = "https://github.com/chmln/sd/releases/download/v1.1.0/sd-v1.1.0-x86_64-pc-
 version = "3.13.3"
 backend = "aqua:getsops/sops"
 
+[tools.sops."platforms.linux-arm64"]
+checksum = "sha256:53b0abacd38ef1b12a66d6c100956691b9cefce018d91f81e73ddf7438b94d77"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.arm64"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808229"
+provenance = "cosign"
+
+[tools.sops."platforms.linux-arm64-musl"]
+checksum = "sha256:53b0abacd38ef1b12a66d6c100956691b9cefce018d91f81e73ddf7438b94d77"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.arm64"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808229"
+provenance = "cosign"
+
+[tools.sops."platforms.linux-x64"]
+checksum = "sha256:e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.amd64"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808201"
+provenance = "cosign"
+
+[tools.sops."platforms.linux-x64-musl"]
+checksum = "sha256:e5bec3346a873ae91d871550f3e698c1aad962aff462a080e40f25fde17fef6b"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.linux.amd64"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808201"
+provenance = "cosign"
+
+[tools.sops."platforms.macos-arm64"]
+checksum = "sha256:b97c0d434aab577dc40310e8d22ff9e45eef4c80638ab978daae9b4681c59286"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.darwin.arm64"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808198"
+provenance = "cosign"
+
+[tools.sops."platforms.macos-x64"]
+checksum = "sha256:42162d5cef10b74fcf80a045a70e658d7ce6e63d6ea1be6f347e44015714468d"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.darwin.amd64"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808228"
+provenance = "cosign"
+
+[tools.sops."platforms.windows-x64"]
+checksum = "sha256:a4a9a398858fe8b2ef72d9686d930bf7c5cece9be74ad83ac3b53cfdd70e6b1c"
+url = "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.amd64.exe"
+url_api = "https://api.github.com/repos/getsops/sops/releases/assets/486808200"
+provenance = "cosign"
+
 [[tools.talhelper]]
 version = "3.1.17"
 backend = "aqua:budimanjojo/talhelper"
@@ -815,6 +891,9 @@ url = "https://github.com/zizmorcore/zizmor/releases/download/v1.25.2/zizmor-aar
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.linux-arm64-musl"]
+checksum = "sha256:4b4b9491112c2a09b318101c0d3349b73af1c4f532e097dd6d0164f2abda760d"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.25.2/zizmor-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/421630939"
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.linux-x64"]
@@ -823,6 +902,9 @@ url = "https://github.com/zizmorcore/zizmor/releases/download/v1.25.2/zizmor-x86
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.linux-x64-musl"]
+checksum = "sha256:aa1facd105f0d83fe5c55b1adcd9d7417de5d83aa27471f91dc0b66cf3803577"
+url = "https://github.com/zizmorcore/zizmor/releases/download/v1.25.2/zizmor-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/zizmorcore/zizmor/releases/assets/421630940"
 provenance = "github-attestations"
 
 [tools.zizmor."platforms.macos-arm64"]
