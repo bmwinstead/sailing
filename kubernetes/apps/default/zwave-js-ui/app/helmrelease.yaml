@@ -52,9 +52,8 @@ spec:
                   periodSeconds: 10
                   failureThreshold: 30
             securityContext:
-              allowPrivilegeEscalation: false
+              privileged: true # /dev/ttyACM0 is root-only (0600) on Talos
               readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
             resources:
               requests:
                 cpu: 50m
@@ -62,12 +61,11 @@ spec:
               limits:
                 memory: 512Mi
     defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-3 # the Z-Wave USB stick is plugged into k8s-3
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
+        runAsUser: 0
+        runAsGroup: 0
     service:
       app:
         ports:
@@ -100,6 +98,12 @@ spec:
         existingClaim: zwave-js-ui-longhorn
         globalMounts:
           - path: /usr/src/app/store
+      zwave:
+        type: hostPath
+        hostPath: /dev/serial/by-id/usb-0658_0200-if00
+        hostPathType: CharDevice
+        globalMounts:
+          - path: /dev/zwave
       tmp:
         type: emptyDir
         globalMounts:
