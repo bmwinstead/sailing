@@ -74,7 +74,62 @@ data:
             state_class: total_increasing
             state: "{{ state_attr('sensor.projector_status', 'light_hours') }}"
 
-    automation: !include automations.yaml
+    # The four office bulbs as one light. The switch controls them with Z-Wave associations.
+    light:
+      - platform: group
+        name: Bryan's Office Lights
+        unique_id: bryans_office_lights
+        entities:
+          - light.multi_color_bulb
+          - light.multi_color_bulb_2
+          - light.multi_color_bulb_3
+          - light.multi_color_bulb_4
+
+    # The "ui" label keeps the automations that you edit in the Home Assistant UI.
+    automation ui: !include automations.yaml
+    automation manual:
+      # The switch is in smart bulb mode. A press toggles from the state that the switch remembers.
+      # Copy the bulb state to the switch, so the switch LED and the next press stay correct.
+      - id: office_switch_follows_bulbs
+        alias: Office switch follows the bulbs
+        mode: restart
+        triggers:
+          - trigger: state
+            entity_id: light.bryans_office_lights
+            attribute: brightness
+          - trigger: state
+            entity_id: light.bryans_office_lights
+        conditions:
+          - condition: template
+            value_template: "{{ trigger.to_state.state in ['on', 'off'] }}"
+        actions:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: light.bryans_office_lights
+                    state: "on"
+                  - condition: template
+                    value_template: >-
+                      {{ is_state('light.red_series_dimmer_7', 'off')
+                         or (state_attr('light.bryans_office_lights', 'brightness') | int(0)
+                             - state_attr('light.red_series_dimmer_7', 'brightness') | int(0)) | abs > 5 }}
+                sequence:
+                  - action: light.turn_on
+                    target:
+                      entity_id: light.red_series_dimmer_7
+                    data:
+                      brightness: "{{ state_attr('light.bryans_office_lights', 'brightness') | int(255) }}"
+              - conditions:
+                  - condition: state
+                    entity_id: light.bryans_office_lights
+                    state: "off"
+                  - condition: state
+                    entity_id: light.red_series_dimmer_7
+                    state: "on"
+                sequence:
+                  - action: light.turn_off
+                    target:
+                      entity_id: light.red_series_dimmer_7
     script: !include scripts.yaml
     scene: !include scenes.yaml
 
