@@ -9,7 +9,18 @@
     enabled: true,
     schedule: ["every weekend"],
   },
+  // Security fixes: also check OSV.dev, and open those PRs immediately
+  // (vulnerabilityAlerts skips minimumReleaseAge by default) with a label.
+  osvVulnerabilityAlerts: true,
+  vulnerabilityAlerts: {
+    addLabels: ["security"],
+  },
   packageRules: [
+    {
+      description: "Let new container/chart releases sit 3 days so bad ones get yanked or hotfixed first",
+      matchDatasources: ["docker", "helm"],
+      minimumReleaseAge: "3 days",
+    },
     {
       description: "Flux Operator Group",
       groupName: "flux-operator",
