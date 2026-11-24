@@ -1,0 +1,20 @@
+#!/bin/bash
+# Install the pinned touchkio .deb. Stop if the SHA-256 does not match.
+set -eu
+
+rootfs=$1
+deb="touchkio_${IGconf_kiosk_touchkio_version}_arm64.deb"
+url="https://github.com/leukipp/touchkio/releases/download/v${IGconf_kiosk_touchkio_version}/${deb}"
+
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+curl -fsSL --retry 3 -o "$work/$deb" "$url"
+echo "${IGconf_kiosk_touchkio_sha256}  $work/$deb" | sha256sum -c -
+
+install -m 0644 "$work/$deb" "$rootfs/tmp/$deb"
+chroot "$rootfs" env DEBIAN_FRONTEND=noninteractive sh -c "apt-get update && apt-get install -y --no-install-recommends /tmp/$deb"
+rm -f "$rootfs/tmp/$deb"
+
+# The unit file comes from customize.overlay. This links it for every user.
+chroot "$rootfs" systemctl --global enable touchkio.service

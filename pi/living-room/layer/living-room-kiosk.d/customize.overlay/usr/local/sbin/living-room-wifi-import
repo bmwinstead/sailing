@@ -1,0 +1,10 @@
+#!/bin/sh
+# Move the Wi-Fi profile from the boot partition to NetworkManager.
+# NetworkManager needs a root-owned file with mode 0600.
+set -eu
+
+src=/boot/firmware/wifi.nmconnection
+dst=/etc/NetworkManager/system-connections/wifi.nmconnection
+
+install -m 0600 -o root -g root "$src" "$dst"
+rm -f "$src"

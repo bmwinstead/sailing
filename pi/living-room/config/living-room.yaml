@@ -1,0 +1,38 @@
+---
+device:
+  layer: rpi4
+  hostname: living-room
+  user1: bmw
+  # No password. The account stays locked, so SSH keys are the only way in.
+  user1sudo: nopasswd
+
+image:
+  layer: image-rpios
+  name: living-room
+  boot_part_size: 256M
+  root_part_size: 5G
+
+deploy:
+  compression: none
+
+layer:
+  - debian-trixie-arm64-multi
+  - rpi-debian-trixie
+  - rpi-misc-utils
+  - rpi-essential-base
+  - rpi-misc-skel
+  - systemd-timesyncd
+  - network-manager
+  - wireless-regulatory
+  - openssh-server
+  - living-room-kiosk
+
+ssh:
+  pubkey_only: y
+
+kiosk:
+  # renovate: datasource=github-releases depName=leukipp/touchkio
+  touchkio_version: 1.6.0
+  touchkio_sha256: 24ef7856a6e9d7ac66201015b2d2895bc642d1ea9d86d957f9142df28958891f
+  web_url: https://home-assistant.winstead.io/living-room
+  mqtt_url: mqtt://10.20.0.7:1883
