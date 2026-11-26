@@ -26,9 +26,9 @@ COPY --from=devbox /usr/local/libexec/gh-extensions /usr/local/libexec/gh-extens
 # Copied from the official cli image, pinned by digest (the digest is the
 # integrity check, and it covers amd64 and arm64). No daemon here: the CLI
 # talks to the sidecar through DOCKER_HOST. Socket group 1000 = `paseo`.
-COPY --from=docker.io/library/docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509b7d7a7030740d6d \
+COPY --from=docker.io/library/docker:29.10.1-cli@sha256:4e60c31615e83523afbb59773b25d055c0da9edcd5f80a4c6a6eebad49de1a25 \
      /usr/local/bin/docker /usr/local/bin/docker
-COPY --from=docker.io/library/docker:29.10.0-cli@sha256:34507eb5069d8be82c95dd3b6987d4250fd5fee49b82e2509b7d7a7030740d6d \
+COPY --from=docker.io/library/docker:29.10.1-cli@sha256:4e60c31615e83523afbb59773b25d055c0da9edcd5f80a4c6a6eebad49de1a25 \
      /usr/local/libexec/docker/cli-plugins /usr/local/libexec/docker/cli-plugins
 
 # Entire CLI + git-remote-entire, for cloning entire:// repos (e.g. performance).
