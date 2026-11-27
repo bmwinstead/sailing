@@ -26,7 +26,7 @@ patches:
             # PATH. Delete it when tf-runner ships tofu >= 1.13.
             initContainers:
               - name: tofu
-                image: ghcr.io/opentofu/opentofu:1.13.9@sha256:f5aef7f2632b490e3c289a239d7974497d0583f3df6bfa35e8eb31a367ee5ec0
+                image: ghcr.io/opentofu/opentofu:1.13.10@sha256:f89e790760542e8ca6c168301e7ab7fb0885ea9a4856fb810e75ee02b40ae727
                 command: ["cp", "/usr/local/bin/tofu", "/tofu/tofu"]
                 securityContext:
                   allowPrivilegeEscalation: false
