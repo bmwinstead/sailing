@@ -1,0 +1,33 @@
+---
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: cnpg-backups
+spec:
+  retentionPolicy: 30d
+  configuration:
+    # One bucket for all clusters. Each cluster writes under its own serverName
+    # prefix. The cooking Cluster plugin parameters set serverName: cooking-db.
+    destinationPath: s3://cnpg-backups/
+    endpointURL: ${R2_ENDPOINT}
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-r2-credentials
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-r2-credentials
+        key: ACCESS_SECRET_KEY
+    data:
+      compression: gzip
+    wal:
+      compression: gzip
+  instanceSidecarConfiguration:
+    env:
+      # R2 only accepts the region "auto".
+      - name: AWS_DEFAULT_REGION
+        value: auto
+      # R2 rejects the default CRC32 checksum headers of recent boto3.
+      - name: AWS_REQUEST_CHECKSUM_CALCULATION
+        value: when_required
+      - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+        value: when_required

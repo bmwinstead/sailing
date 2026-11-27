@@ -9,6 +9,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./app-secrets.sops.yaml
+  - ./cnpg-r2-credentials.sops.yaml
   - ./echo/ks.yaml
   - ./homepage/ks.yaml
   - ./jellyfin/ks.yaml
@@ -19,6 +20,12 @@ resources:
   - ./qbittorrent/ks.yaml
   - ./qui/ks.yaml
   - ./audiobookshelf/ks.yaml
+  - ./donetick/ks.yaml
+  - ./home-assistant/ks.yaml
   - ./seerr/ks.yaml
   - ./storage/ks.yaml
   - ./recyclarr/ks.yaml
+  - ./stalwart/ks.yaml
+  - ./stalwart/config/ks.yaml
+  - ./mosquitto/ks.yaml
+  - ./zwave-js-ui/ks.yaml

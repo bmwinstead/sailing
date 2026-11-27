@@ -1,0 +1,18 @@
+# For local development only (`wrangler dev`). OpenTofu deploys this Worker. See README.md, step 5.
+# OpenTofu reads only compatibility_date from this file. It sets all bindings from SSM.
+# The REPLACE_ME values are placeholders. Do not run `wrangler deploy`, it would replace the OpenTofu bindings.
+name = "pkg-mail-ingest"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+JMAP_URL = "https://pkg-ingest.winstead.io"
+ACCOUNT_ID = "REPLACE_ME"
+INBOX_ID = "REPLACE_ME"
+FALLBACK_ADDR = "REPLACE_ME@example.com"
+
+# Secrets for local development go in .dev.vars (not committed):
+#   STALWART_USER
+#   STALWART_PASSWORD
+#   CF_ACCESS_CLIENT_ID
+#   CF_ACCESS_CLIENT_SECRET

@@ -13,9 +13,17 @@
 kubeconfig
 talosconfig
 # OpenTofu
+/aws/.terraform/
+/aws/*.tfstate*
+/aws/*.tfplan
+/aws/backend_override.tf
+/aws/imports.tf
 /buildkite/.terraform/
 /buildkite/*.tfstate*
 /buildkite/*.tfplan
+/cloudflare/.terraform/
+/cloudflare/*.tfstate*
+/cloudflare/*.tfplan
 # Misc.
 .claude/
 .private/

@@ -1,0 +1,20 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ./job.yaml
+  - ./pkg-credentials-job.yaml
+  # Written by "just aws sync-stalwart-secret". It must be in git before Flux builds this directory.
+  - ./aws-credentials.sops.yaml
+# The name hash changes with the plan, so a new plan changes the Job and Flux recreates it.
+configMapGenerator:
+  - name: stalwart-config-plan
+    files:
+      - plan.ndjson=./plan.ndjson
+  - name: stalwart-pkg-credentials-script
+    files:
+      - pkg-credentials.sh=./pkg-credentials.sh
+    options:
+      annotations:
+        # Flux must not replace the ${...} expansions of the script.
+        kustomize.toolkit.fluxcd.io/substitute: disabled

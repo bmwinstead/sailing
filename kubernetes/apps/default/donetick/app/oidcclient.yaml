@@ -1,0 +1,20 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aclerici38/pocket-id-operator/v0.16.2/dist/schemas/pocketidoidcclient_v1alpha1.json
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDOIDCClient
+metadata:
+  name: donetick
+spec:
+  # Donetick sends redirect_uri=<origin>/auth/oauth2 (frontend LoginView.jsx). The donetick:// mobile URI is not registered.
+  callbackUrls:
+    - https://donetick.${SECRET_DOMAIN}/auth/oauth2
+  allowedUserGroups:
+    - name: admins
+      namespace: auth
+    - name: family
+      namespace: auth
+  secret:
+    name: donetick-oidc
+    keys:
+      clientID: client-id
+      clientSecret: client-secret

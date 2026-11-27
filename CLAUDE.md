@@ -53,7 +53,7 @@ kubernetes/apps/<namespace>/
 
 Chart sources are usually `OCIRepository` (e.g. `oci://ghcr.io/stakater/charts/reloader`). Use `HelmRepository` only when the chart isn't published as OCI.
 
-**Secrets:** SOPS + age. The age key is at `./age.key`. Encrypted secrets follow the pattern `*.sops.yaml`. The `kubernetes/components/sops/` component is referenced from namespace-level kustomizations and injects a `cluster-secrets` Secret; app ks.yaml files reference it via `postBuild.substituteFrom` for variable substitution.
+**Secrets:** SOPS with the shared KMS key `alias/sailing` (see `aws/`). Log in with `aws sso login --profile admin` before you run sops. Flux decrypts with the Secret `sops-aws`, which bootstrap applies. Encrypted secrets follow the pattern `*.sops.yaml`. The `kubernetes/components/sops/` component is referenced from namespace-level kustomizations and injects a `cluster-secrets` Secret; app ks.yaml files reference it via `postBuild.substituteFrom` for variable substitution.
 
 **Networking:**
 - Cilium as CNI with BGP peering to the router (`10.20.0.1`) for LoadBalancer IP advertisement

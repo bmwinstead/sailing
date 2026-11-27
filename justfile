@@ -2,11 +2,17 @@ set quiet
 set shell := ['bash', '-euo', 'pipefail', '-c']
 set script-interpreter := ['bash', '-euo', 'pipefail']
 
+[group: 'aws']
+mod? aws 'aws'
+
 [group: 'bootstrap']
 mod? bootstrap 'bootstrap'
 
 [group: 'buildkite']
 mod? buildkite 'buildkite'
+
+[group: 'cloudflare']
+mod? cloudflare 'cloudflare'
 
 [group: 'kubernetes']
 mod? kube 'kubernetes'

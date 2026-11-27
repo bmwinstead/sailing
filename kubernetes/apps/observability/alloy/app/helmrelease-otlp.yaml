@@ -2,7 +2,7 @@
 # OTLP receiver for apps in the cluster (gRPC 4317, HTTP 4318), reached through
 # the alloy-otlp Service. Kept separate from the DaemonSet releases because apps
 # call it through a Service, so it runs as a Deployment.
-# Metrics go to VictoriaMetrics and logs go to Loki, both over native OTLP.
+# Metrics go to VictoriaMetrics, logs go to Loki, and traces go to Tempo, all over OTLP.
 # otelcol.processor.deltatocumulative is experimental; expect to revisit it on Alloy upgrades.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
@@ -67,17 +67,20 @@ spec:
             }
           }
 
-          // Traces: no backend exists yet. The receiver must still accept them, or
-          // clients get "Unimplemented" / 404 errors. Each batch logs one summary line
-          // and the data is then dropped. Replace the exporter when a backend is chosen.
           otelcol.processor.batch "traces" {
             output {
-              traces = [otelcol.exporter.debug.traces.input]
+              traces = [otelcol.exporter.otlp.tempo.input]
             }
           }
 
-          otelcol.exporter.debug "traces" {
-            verbosity = "basic"
+          // Tempo takes OTLP gRPC in the same namespace, with no TLS.
+          otelcol.exporter.otlp "tempo" {
+            client {
+              endpoint = "tempo.observability.svc.cluster.local:4317"
+              tls {
+                insecure = true
+              }
+            }
           }
 
           otelcol.processor.batch "logs" {

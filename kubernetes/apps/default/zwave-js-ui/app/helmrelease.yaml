@@ -1,0 +1,113 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: zwave-js-ui
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: zwave-js-ui
+  interval: 1h
+  values:
+    controllers:
+      zwave-js-ui:
+        replicas: 1
+        strategy: Recreate # RWO volume: stop the old pod before the new one mounts it
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/zwave-js/zwave-js-ui
+              tag: 11.27.0@sha256:0f3ad23ccf5ff2256ad8cc060ab0fc987b8f52a8427eac337f93b058fa628f35
+            env:
+              TZ: America/New_York
+            envFrom:
+              - secretRef:
+                  name: zwave-js-ui-keys # KEY_S0_Legacy and KEY_S2_* override the UI settings
+            probes:
+              liveness: &probe
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: &port 8091
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              readiness:
+                <<: *probe
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *port
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 5
+              startup:
+                <<: *probe
+                spec:
+                  httpGet:
+                    path: /health
+                    port: *port
+                  periodSeconds: 10
+                  failureThreshold: 30
+            securityContext:
+              privileged: true # /dev/ttyACM0 is root-only (0600) on Talos
+              readOnlyRootFilesystem: true
+            resources:
+              requests:
+                cpu: 50m
+                memory: 128Mi
+              limits:
+                memory: 512Mi
+    defaultPodOptions:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-3 # the Z-Wave USB stick is plugged into k8s-3
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+    service:
+      app:
+        ports:
+          http:
+            port: *port
+          ws:
+            port: 3000 # Z-Wave JS server for Home Assistant, ClusterIP only
+    route:
+      app:
+        annotations:
+          gethomepage.dev/enabled: "true"
+          gethomepage.dev/name: Z-Wave JS UI
+          gethomepage.dev/description: Z-Wave network control
+          gethomepage.dev/group: Home
+          gethomepage.dev/icon: zwave-js-ui
+          gethomepage.dev/href: "https://zwave-js-ui.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "http://zwave-js-ui.default.svc.cluster.local:8091"
+        hostnames:
+          - "zwave-js-ui.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+            sectionName: https
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+    persistence:
+      store:
+        existingClaim: zwave-js-ui-longhorn
+        globalMounts:
+          - path: /usr/src/app/store
+      zwave:
+        type: hostPath
+        hostPath: /dev/serial/by-id/usb-0658_0200-if00
+        hostPathType: CharDevice
+        globalMounts:
+          - path: /dev/zwave
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp

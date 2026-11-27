@@ -1,0 +1,12 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/aclerici38/pocket-id-operator/v0.16.2/dist/schemas/pocketidapi_v1alpha1.json
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDAPI
+metadata:
+  name: stalwart
+spec:
+  # The Stalwart WebUI sends its own origin as the OAuth "resource" (RFC 8707).
+  # Pocket ID rejects a resource that is not a registered API. Stalwart accepts
+  # this value as the token audience.
+  name: Stalwart
+  resource: https://stalwart.${SECRET_DOMAIN}
