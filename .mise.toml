@@ -31,7 +31,7 @@ sops = "3.13.3"
 talhelper = "3.1.17"
 talosctl = "1.13.2"
 yq = "4.54.3"
-zizmor = "1.25.2"
+zizmor = "1.33.1"
 yamlfmt = "latest"
 
 [hooks]
