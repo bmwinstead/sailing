@@ -4,6 +4,9 @@ kind: Kustomization
 metadata:
   name: qui
 spec:
+  dependsOn:
+    - name: pocket-id # PocketIDOIDCClient CRD and operator
+      namespace: auth
   interval: 1h
   path: ./kubernetes/apps/default/qui/app
   postBuild:

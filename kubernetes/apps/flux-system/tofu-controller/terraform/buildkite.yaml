@@ -1,0 +1,18 @@
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: buildkite
+spec:
+  interval: 1h
+  path: ./buildkite
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  # The module keeps its own S3 backend (backend.tf).
+  backendConfig:
+    disable: true
+  destroyResourcesOnDeletion: false
+  # Plans apply automatically. Remove approvePlan to return to manual approval.
+  approvePlan: auto

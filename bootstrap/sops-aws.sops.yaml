@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sops-aws
+  namespace: flux-system
+stringData:
+  AWS_ACCESS_KEY_ID: ENC[AES256_GCM,data:oWytIHRj/AmMDYsVlNt8V1lpgn4=,iv:bJ3gvFLB0okYn9n9/56/dkjqSPbxBjGX8z4HGsn5S3s=,tag:b4RUF/APOO7kyS+UdDCmuQ==,type:str]
+  AWS_SECRET_ACCESS_KEY: ENC[AES256_GCM,data:aCD1z+NxQOTV8ViU6R6HPrvc2JDDHjCl9Qsenl0Hsp0tms0z4LJTCA==,iv:i02bZBu9SpDfjqFsslcnMtnbecvVKFoxDIuKBBbpCxE=,tag:zCcfZb8El6wFtjzhHdlz5A==,type:str]
+  AWS_REGION: ENC[AES256_GCM,data:plgCTkKU6/WS,iv:93hCDYJzsoXL1kUgR+Cjnl4yXZuLs053VD0U0DUnt8w=,tag:H+yWRi7wP9esU8Ito0h4Aw==,type:str]
+sops:
+  encrypted_regex: ^(data|stringData)$
+  kms:
+    - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
+      aws_profile: ""
+      context:
+        purpose: sops
+      created_at: "2026-11-18T14:55:03Z"
+      enc: AQICAHjgw/vIYU2CX5id4R5kz7lKeSSRLiACpC/t30YYpZazkAFZFg3MCwUM1J92tPFjq5DMAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMb7hwVCyNQVXaCv4oAgEQgDt4Tj96dxFexIXAyt+P2j5WXskIBWH3l4toI/yImuR7UhSaFPcr4DhKl3Rk4FEe1+e66g6VtlokKPR77Q==
+  lastmodified: "2026-11-18T07:30:32Z"
+  mac: ENC[AES256_GCM,data:VB19PsjyrXf6yeUp1X71ZtStRyOAkMMIJQWCIu3n1s73LezjLTpTKxLk2l8rcM5+2JMQH5z1z7gvIN6xELAV1cV1L4KaHFua52v3eW4tjKApZIRO1nI56xEj3/Q/sY7UFoGfksb7krGO/O4qVR+niH/ST9inO7/XRmLr+Jof7RE=,iv:GHtrJq3uUes+pyVykKtLgvwICUhgysmgq68NwBUJmjA=,tag:+wCRr2RdimmnOZSHRiipqg==,type:str]
+  mac_only_encrypted: true
+  version: 3.13.3

@@ -15,6 +15,10 @@ output "performance_pipeline_slug" {
   value = buildkite_pipeline.performance.slug
 }
 
-output "registry_slug" {
-  value = buildkite_registry.oci.slug
+output "manifests_registry_slug" {
+  value = buildkite_registry.manifests.slug
+}
+
+output "images_registry_slug" {
+  value = buildkite_registry.images.slug
 }

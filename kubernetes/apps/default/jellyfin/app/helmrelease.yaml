@@ -17,9 +17,11 @@ spec:
           app:
             image:
               repository: ghcr.io/jellyfin/jellyfin
-              tag: 10.11.10
+              tag: 10.11.11
             env:
               DOTNET_SYSTEM_IO_DISABLEFILELOCKING: "true"
+              # temporary: debug logging to diagnose infuse playback failures
+              JELLYFIN_Serilog__MinimumLevel__Default: Debug
               JELLYFIN_PublishedServerUrl: "https://jellyfin.${SECRET_DOMAIN}"
             envFrom:
               - secretRef:

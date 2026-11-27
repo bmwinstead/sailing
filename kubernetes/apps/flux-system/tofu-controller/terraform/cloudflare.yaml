@@ -1,0 +1,24 @@
+---
+apiVersion: infra.contrib.fluxcd.io/v1alpha2
+kind: Terraform
+metadata:
+  name: cloudflare
+spec:
+  interval: 1h
+  path: ./cloudflare
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  # The module keeps its own S3 backend (backend.tf).
+  backendConfig:
+    disable: true
+  destroyResourcesOnDeletion: false
+  # Plans apply automatically. Remove approvePlan to return to manual approval.
+  approvePlan: auto
+  # tofu-controller refuses a TF_VAR_* environment variable. Variables come in here.
+  varsFrom:
+    - kind: Secret
+      name: tofu-credentials # ../app/secret-credentials.sops.yaml
+      varsKeys:
+        - account_id

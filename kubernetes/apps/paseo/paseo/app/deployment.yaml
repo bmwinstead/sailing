@@ -14,6 +14,16 @@
 #   git clone https://github.com/bmwinstead/sailing.git ~/sailing
 # then add ~/sailing as a project in Paseo. talosctl is already configured
 # read-only (os:reader) via the mounted paseo-talosconfig secret.
+#
+# Containers: the `dind` sidecar runs dockerd, so agents get `docker`, buildx,
+# compose, and kind/Dagger/Tilt on top. The two containers share the pod
+# network, so kind ports on 127.0.0.1 work. The socket is on a shared emptyDir
+# (DOCKER_HOST) with group 1000. Layers live on the paseo-docker PVC.
+# SECURITY: the sidecar is privileged. Any agent that can use the socket has
+# root-equivalent power in that container, and the container boundary is the
+# only wall between it and the host. Cluster-wide PodSecurity admission is off
+# (talos/patches/controller/cluster.yaml), so no namespace label is needed.
+# Restarting the sidecar stops all nested containers, kind clusters included.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,6 +49,8 @@ spec:
         runAsGroup: 1000
         runAsNonRoot: true
         fsGroup: 1000
+        # Do not re-chgrp the whole docker data root on every start.
+        fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: paseo
           image: ghcr.io/bmwinstead/paseo:latest
@@ -63,6 +75,8 @@ spec:
               value: "5015762"
             - name: GH_APP_PRIVATE_KEY_PATH
               value: /home/paseo/.local/share/gh-app-auth/private-key.pem
+            - name: DOCKER_HOST
+              value: unix:///var/run/docker-sock/docker.sock
           startupProbe:
             httpGet:
               path: /api/health
@@ -84,12 +98,39 @@ spec:
             - name: github-app
               mountPath: /home/paseo/.github-app
               readOnly: true
+            - name: docker-sock
+              mountPath: /var/run/docker-sock
           resources:
             requests:
               cpu: "250m"
               memory: "512Mi"
             limits:
               cpu: "8"
+              memory: "16Gi"
+        - name: dind
+          image: docker.io/library/docker:29.10.1-dind@sha256:fbbc96e0af32cdc190aff92ba97a1281a115351a723afe21af78879cc55126b0
+          # Explicit args keep the entrypoint from adding a TCP listener: the
+          # daemon is reachable only through the socket. Group 1000 = `paseo`.
+          args:
+            - dockerd
+            - --host=unix:///var/run/docker-sock/docker.sock
+            - --group=1000
+          securityContext:
+            privileged: true # dockerd, and kind nodes, need it
+            # The pod default is uid 1000, which makes the dind entrypoint pick rootless mode.
+            runAsUser: 0
+            runAsGroup: 0
+            runAsNonRoot: false
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run/docker-sock
+            - name: docker-data
+              mountPath: /var/lib/docker
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
               memory: "16Gi"
       volumes:
         - name: home
@@ -102,6 +143,11 @@ spec:
           secret:
             secretName: paseo-github-app
             optional: true
+        - name: docker-sock
+          emptyDir: {}
+        - name: docker-data
+          persistentVolumeClaim:
+            claimName: paseo-docker
 ---
 apiVersion: v1
 kind: Service

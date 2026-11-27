@@ -17,7 +17,7 @@ spec:
           app:
             image:
               repository: ghcr.io/home-operations/prowlarr
-              tag: 2.1.5.5216@sha256:affb671fa367f4b7029d58f4b7d04e194e887ed6af1cf5a678f3c7aca5caf6ca
+              tag: 2.7.0.5723@sha256:fcf7498692f97698ea8b8f7078a0f81120a16e7354e4c232b5e3810e3e783dff
             env:
               PROWLARR__APP__INSTANCENAME: Prowlarr
               PROWLARR__APP__THEME: dark
@@ -83,7 +83,7 @@ spec:
           gethomepage.dev/group: Media
           gethomepage.dev/icon: prowlarr
           gethomepage.dev/href: "https://prowlarr.${SECRET_DOMAIN}"
-          gethomepage.dev/siteMonitor: "https://prowlarr.${SECRET_DOMAIN}"
+          gethomepage.dev/siteMonitor: "http://prowlarr.default.svc.cluster.local"
           gethomepage.dev/widget.type: prowlarr
           gethomepage.dev/widget.url: "http://prowlarr.default.svc.cluster.local"
           gethomepage.dev/widget.key: "${PROWLARR__APP__APIKEY}"

@@ -5,4 +5,5 @@ resources:
   - ./helmrelease.yaml
   - ./helmrelease-node-logs.yaml
   - ./helmrelease-profiles.yaml
+  - ./helmrelease-otlp.yaml
   - ./helmrepository.yaml

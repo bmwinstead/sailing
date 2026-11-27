@@ -26,6 +26,23 @@ spec:
     engine:
       kind: StatefulSet
       port: 1234
+      # Replaces the image's default engine.json, so keep its docker.io mirror.
+      # GC keeps the cache between 10GB and 38GB and 15% of the 50Gi volume
+      # free. Without limits the cache can fill the volume and fail builds
+      # with "no space left on device".
+      configJson: |
+        {
+          "registries": {
+            "docker.io": {
+              "mirrors": ["mirror.gcr.io"]
+            }
+          },
+          "gc": {
+            "reservedSpace": "10GB",
+            "maxUsedSpace": "38GB",
+            "minFreeSpace": "15%"
+          }
+        }
       # Use the PVC below instead of the chart's hostPath default, since a
       # StatefulSet replica can land on a different node after a reschedule.
       hostPath:
@@ -37,7 +54,7 @@ spec:
           storageClassName: longhorn
           resources:
             requests:
-              storage: 10Gi
+              storage: 50Gi
       resources:
         requests:
           cpu: 250m

@@ -10,17 +10,14 @@ stringData:
   lastName: ENC[AES256_GCM,data:6VRlRWLPimE=,iv:F/P6HIYGddcpLnLLXfyNJWPDMW3LpkK+guID8DC4zzE=,tag:05dmesy7nAsEfFRO8aEDKQ==,type:str]
   email: ENC[AES256_GCM,data:rwAGLzIH6c4J8xhWJA7PIks=,iv:micYJkTXgOX1cuSs+0MgScaYMXze9mewbMSZTMlprZI=,tag:EdzxPFmTJuxqhyynCvnE2Q==,type:str]
 sops:
-  age:
-    - enc: |
-        -----BEGIN AGE ENCRYPTED FILE-----
-        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBPcWlVWWd5eSt6Mm9RQWVM
-        c2Q3akdOQ3B5a212Rk42cENmeExXZ1hKM213CitET2xDekdTb211Y25rM0V6OUk0
-        QStzUUZSdzJWZUY1Y0luWDVPdHVZWTQKLS0tIGNJMm9YeGRMNkd4aFRUNEt0UElO
-        S2paTWNBWWFpcDZ3K1A2clVNUWZLamcKZPETDjBg33Ds28msR/8QCHtYficWa8EQ
-        8NXV9hGGEd30YosDXtfc24CAIssbBCmcwQmnSVOuBMEDf4yXF3HvbA==
-        -----END AGE ENCRYPTED FILE-----
-      recipient: age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el
   encrypted_regex: ^(data|stringData)$
+  kms:
+    - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
+      aws_profile: ""
+      context:
+        purpose: sops
+      created_at: "2026-11-18T14:55:06Z"
+      enc: AQICAHjgw/vIYU2CX5id4R5kz7lKeSSRLiACpC/t30YYpZazkAGqRuMCLiTyMNcTCI/Lhhm+AAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMU7/P34x5Uyw/x69tAgEQgDsuzTAK0vaNHyyRzB/SmdisMhilies5DOMSCclhylnsWcXq9JChqolabCJPly8sZ9gSUK6g/++OS+6xDg==
   lastmodified: "2026-11-12T03:08:06Z"
   mac: ENC[AES256_GCM,data:9zakOCS4MTrU413RScS8/2AortcNJ62vPh7ia8qUoHJnjNgCDLqsxQZNOpzJ6ceshvKCvFJmnR29jDAJv8Ges5gi9rGnnKeSMI5cOqdVR7Dn7RhOFG+fhnven/ojfaUiREupDAm5+r/sHEEZKIk47PptJaNSOXrOHXwfKQad+jQ=,iv:ZVjTREH1Qn55TQVq8xZ/CNYdgPQnjZeruMfsYj4i8gA=,tag:rU8+OGTyoI+FGnDqA2y4qg==,type:str]
   mac_only_encrypted: true

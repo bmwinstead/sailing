@@ -1,0 +1,66 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: stalwart-config
+spec:
+  # Stalwart can still be starting. The image has no shell to wait, so each failure restarts with a longer delay.
+  backoffLimit: 20
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: apply
+          image: ghcr.io/stalwartlabs/cli:2.0.0@sha256:8588aa3ea88ed740f83292ab37760869541df3da39cd1c8e6494fb43ece888c9
+          args:
+            - apply
+            - --file
+            - /plan/plan.ndjson
+          env:
+            - name: STALWART_URL
+              value: http://stalwart.default.svc.cluster.local:8080
+            # The CLI caches the server schema here. The image sets no HOME, so do not rely on ~/.cache.
+            - name: XDG_CACHE_HOME
+              value: /cache
+            # The recovery admin. STALWART_RECOVERY_ADMIN in the same Secret holds the same pair as user:password.
+            - name: STALWART_USER
+              valueFrom:
+                secretKeyRef:
+                  name: stalwart-admin
+                  key: STALWART_USER
+            - name: STALWART_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: stalwart-admin
+                  key: STALWART_PASSWORD
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: plan
+              mountPath: /plan
+              readOnly: true
+            - name: cache
+              mountPath: /cache
+      volumes:
+        - name: plan
+          configMap:
+            name: stalwart-config-plan
+        - name: cache
+          emptyDir: {}

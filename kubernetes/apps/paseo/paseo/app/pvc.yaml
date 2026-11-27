@@ -12,3 +12,18 @@ spec:
   resources:
     requests:
       storage: 30Gi
+---
+# Image layers and build cache for the Docker daemon sidecar (see
+# deployment.yaml). Own volume so a large cache cannot fill node ephemeral
+# storage and evict the pod. 50Gi matches the dagger-engine cache.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paseo-docker
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 50Gi

@@ -1,0 +1,22 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: zwave-js-ui
+spec:
+  dependsOn:
+    - name: pocket-id # PocketIDOIDCClient CRD and operator
+      namespace: auth
+  interval: 1h
+  path: ./kubernetes/apps/default/zwave-js-ui/app
+  postBuild:
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: default
+  wait: false

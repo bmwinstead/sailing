@@ -11,7 +11,7 @@ metadata:
     buildkite-registry: "true"
 spec:
   interval: 1h
-  url: oci://packages.buildkite.com/winstead-io/sailing/performance
+  url: oci://packages.buildkite.com/winstead-io/manifests/performance
   ref:
     tag: latest
   secretRef:

@@ -1,0 +1,326 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: home-assistant-config
+data:
+  configuration.yaml: |-
+    default_config:
+
+    recorder:
+      db_url: !env_var RECORDER_DB_URL
+
+    # Sony Projector has no config flow. It uses SDCP on port 53484.
+    # It gives the power switch only. ADCP (below) gives the rest.
+    switch:
+      - platform: sony_projector
+        host: 192.168.1.203
+        name: Projector
+
+    # Sony VPL-VW295ES over ADCP on port 53595. projector.py sends the commands.
+    command_line:
+      - sensor:
+          name: Projector status
+          unique_id: projector_status
+          command: python3 /config/projector.py status
+          command_timeout: 15
+          scan_interval: 30
+          value_template: "{{ value_json.power_status }}"
+          json_attributes:
+            - input
+            - picture_mode
+            - aspect
+            - light_hours
+
+    shell_command:
+      projector_set: python3 /config/projector.py set {{ cmd }} {{ value }}
+
+    template:
+      - select:
+          - name: Projector input
+            unique_id: projector_input
+            state: "{{ state_attr('sensor.projector_status', 'input') }}"
+            availability: "{{ is_state('sensor.projector_status', 'on') }}"
+            options: "{{ ['hdmi1', 'hdmi2'] }}"
+            select_option:
+              - action: shell_command.projector_set
+                data: {cmd: input, value: "{{ option }}"}
+              - action: homeassistant.update_entity
+                target: {entity_id: sensor.projector_status}
+          - name: Projector picture mode
+            unique_id: projector_picture_mode
+            state: "{{ state_attr('sensor.projector_status', 'picture_mode') }}"
+            availability: "{{ is_state('sensor.projector_status', 'on') }}"
+            options: "{{ ['cinema_film1', 'cinema_film2', 'ref', 'tv', 'photo', 'game', 'brt_cinema', 'brt_tv', 'user'] }}"
+            select_option:
+              - action: shell_command.projector_set
+                data: {cmd: picture_mode, value: "{{ option }}"}
+              - action: homeassistant.update_entity
+                target: {entity_id: sensor.projector_status}
+          - name: Projector aspect
+            unique_id: projector_aspect
+            state: "{{ state_attr('sensor.projector_status', 'aspect') }}"
+            availability: "{{ is_state('sensor.projector_status', 'on') }}"
+            options: "{{ ['normal', 'v_stretch', 'zoom_1_85', 'zoom_2_35', 'squeeze'] }}"
+            select_option:
+              - action: shell_command.projector_set
+                data: {cmd: aspect, value: "{{ option }}"}
+              - action: homeassistant.update_entity
+                target: {entity_id: sensor.projector_status}
+        sensor:
+          - name: Projector light source hours
+            unique_id: projector_light_hours
+            unit_of_measurement: h
+            state_class: total_increasing
+            state: "{{ state_attr('sensor.projector_status', 'light_hours') }}"
+
+    automation: !include automations.yaml
+    script: !include scripts.yaml
+    scene: !include scenes.yaml
+
+    lovelace:
+      dashboards:
+        living-room:
+          mode: yaml
+          filename: dashboards/living-room.yaml
+          title: Living Room
+          icon: mdi:television
+          show_in_sidebar: false
+
+  projector.py: |-
+    #!/usr/bin/env python3
+    """Sony VPL-VW295ES ADCP client. Usage: projector.py status | set <command> <value> | selftest"""
+    import json
+    import re
+    import socket
+    import sys
+
+    HOST, PORT = "192.168.1.203", 53595
+    SETTABLE = {"input", "picture_mode", "aspect"}  # ponytail: add ADCP commands here as needed
+
+    def parse(reply):
+        # '"on"' -> 'on', '[{"a":1}]' -> list, 'err_*' (for example err_inactive in standby) -> None
+        return None if reply.startswith("err_") else json.loads(reply)
+
+    def talk(cmds):
+        with socket.create_connection((HOST, PORT), timeout=5) as s:
+            s.recv(64)  # NOKEY banner: the projector has no ADCP password
+            replies = []
+            for c in cmds:
+                s.sendall(c.encode() + b"\r\n")
+                replies.append(s.recv(256).decode().strip())
+        return replies
+
+    def status():
+        names = ["power_status", "input", "picture_mode", "aspect", "timer"]
+        r = dict(zip(names, (parse(x) for x in talk([n + " ?" for n in names]))))
+        hours = {k: v for d in r.pop("timer") or [] for k, v in d.items()}
+        r["light_hours"] = hours.get("light_src")
+        return r
+
+    def set_value(cmd, value):
+        if cmd not in SETTABLE or not re.fullmatch(r"[a-z0-9_]+", value):
+            sys.exit(f"bad command: {cmd} {value}")
+        reply = talk([f'{cmd} "{value}"'])[0]
+        if reply != "ok":
+            sys.exit(f"projector said {reply}")
+
+    if __name__ == "__main__":
+        a = sys.argv[1:]
+        if a == ["status"]:
+            print(json.dumps(status()))
+        elif len(a) == 3 and a[0] == "set":
+            set_value(a[1], a[2])
+        elif a == ["selftest"]:
+            assert parse('"on"') == "on"
+            assert parse("err_inactive") is None
+            assert parse('[{"a":1}]') == [{"a": 1}]
+            print("ok")
+        else:
+            sys.exit(__doc__)
+
+  living-room.yaml: |-
+    # Living room kiosk, 1920x1080 landscape. Core cards only.
+    # Each view repeats the bottom nav bar. The active view gets entity + color,
+    # because the button card colors its icon from an entity that is active.
+    title: Living Room
+    views:
+      - title: Home
+        path: home
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 1
+            cards:
+              - {type: clock, clock_size: medium, time_format: "12", show_seconds: false, grid_options: {columns: full, rows: 2}}
+              - type: markdown
+                grid_options: {columns: full, rows: 2}
+                # The HA markdown card allows <center> but not style, so the <br> nudges the date down.
+                content: |
+                  <br>
+                  <center><h2>{{ now().strftime('%A, %B %-d') }}</h2></center>
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: weather-forecast, entity: weather.home, forecast_type: daily, grid_options: {columns: full, rows: 4}}
+          - type: grid
+            column_span: 1
+            cards:
+              # Unknown and unavailable states count as 0.
+              - type: markdown
+                grid_options: {columns: full, rows: 4}
+                content: |
+                  {%- set ns = namespace(on=0, got=0, bad=0) %}
+                  {%- for s in ['sensor.packages_bmwinstead_com_mail_amazon_packages_delivering', 'sensor.packages_bmwinstead_com_mail_ups_delivering', 'sensor.packages_bmwinstead_com_mail_fedex_delivering', 'sensor.packages_bmwinstead_com_mail_usps_delivering'] %}{% set ns.on = ns.on + states(s) | int(0) %}{% endfor %}
+                  {%- for s in ['sensor.packages_bmwinstead_com_mail_amazon_packages_delivered', 'sensor.packages_bmwinstead_com_mail_ups_delivered', 'sensor.packages_bmwinstead_com_mail_fedex_delivered', 'sensor.packages_bmwinstead_com_mail_usps_delivered'] %}{% set ns.got = ns.got + states(s) | int(0) %}{% endfor %}
+                  {%- for s in ['sensor.packages_bmwinstead_com_mail_amazon_exception', 'sensor.packages_bmwinstead_com_mail_ups_exception', 'sensor.packages_bmwinstead_com_mail_fedex_exception', 'sensor.packages_bmwinstead_com_mail_usps_exception'] %}{% set ns.bad = ns.bad + states(s) | int(0) %}{% endfor %}
+                  {%- set mail = states('sensor.packages_bmwinstead_com_mail_usps_mail') | int(0) -%}
+                  <ha-icon icon="mdi:package-variant-closed"></ha-icon> **Packages**
+                  {% if ns.on > 0 %}## {{ ns.on }} on the way{% else %}## No packages on the way{% endif %}
+                  {%- if ns.got > 0 %}
+                  {{ ns.got }} delivered
+                  {%- endif %}
+                  {%- if mail > 0 %}
+                  {{ mail }} {{ 'piece' if mail == 1 else 'pieces' }} of mail
+                  {%- endif %}
+                  {%- if ns.bad > 0 %}
+                  **Delivery problem: {{ ns.bad }}**
+                  {%- endif %}
+          - type: grid
+            cards:
+              - {type: heading, heading: Calendar, heading_style: title, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}, grid_options: {columns: full, rows: 1}}
+              - {type: calendar, initial_view: listWeek, entities: [calendar.bmwinstead_gmail_com_family, calendar.bmwinstead_gmail_com_home], grid_options: {columns: full, rows: 7}}
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: heading, heading: Photos, heading_style: title, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 1}}
+              - {type: picture-entity, entity: camera.album_slideshow_tablet_display, show_name: false, show_state: false, fit_mode: cover, tap_action: {action: navigate, navigation_path: /living-room/photos}, grid_options: {columns: full, rows: 7}}
+          - type: grid
+            cards:
+              - {type: heading, heading: Dinner this week, heading_style: title, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}, grid_options: {columns: full, rows: 1}}
+              # TODO: a custom integration will provide the meal plan later.
+              - {type: markdown, content: "Meals: coming soon", grid_options: {columns: full, rows: 2}}
+              - {type: heading, heading: Shopping list, heading_style: title, icon: mdi:cart, tap_action: {action: navigate, navigation_path: /living-room/lists}, grid_options: {columns: full, rows: 1}}
+              - {type: todo-list, entity: todo.shopping_list, grid_options: {columns: full, rows: 3}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                grid_options: {columns: full, rows: 2}
+                cards:
+                  - {<<: [&btn {type: button, icon_height: 40px}, &on {entity: weather.home, color: accent}], name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Calendar
+        path: calendar
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              - {type: calendar, entities: [calendar.bmwinstead_gmail_com_family, calendar.bmwinstead_gmail_com_home, calendar.donetick_chores_chores], grid_options: {columns: full, rows: 10}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                grid_options: {columns: full, rows: 2}
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: [*btn, *on], name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Meals
+        path: meals
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              # TODO: a custom integration will provide the meal plan later.
+              - {type: markdown, content: "Meals: coming soon", grid_options: {columns: full, rows: 8}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                grid_options: {columns: full, rows: 2}
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: [*btn, *on], name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Photos
+        path: photos
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 4
+            cards:
+              - {type: picture-entity, entity: camera.album_slideshow_tablet_display, show_name: false, show_state: false, fit_mode: contain, grid_options: {columns: full, rows: 9}}
+              - {type: tile, entity: switch.album_slideshow_tablet_display_pause_slideshow, name: Pause slideshow, tap_action: {action: toggle}, grid_options: {columns: full, rows: 1}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                grid_options: {columns: full, rows: 2}
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: [*btn, *on], name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: *btn, name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}
+
+      - title: Lists
+        path: lists
+        type: sections
+        max_columns: 4
+        sections:
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: todo-list, entity: todo.shopping_list, grid_options: {columns: full, rows: 9}}
+          - type: grid
+            column_span: 2
+            cards:
+              - {type: todo-list, entity: todo.all_tasks, grid_options: {columns: full, rows: 9}}
+          - type: grid
+            column_span: 4
+            cards:
+              - type: grid
+                columns: 6
+                square: false
+                grid_options: {columns: full, rows: 2}
+                cards:
+                  - {<<: *btn, name: Home, icon: mdi:home, tap_action: {action: navigate, navigation_path: /living-room/home}}
+                  - {<<: *btn, name: Calendar, icon: mdi:calendar, tap_action: {action: navigate, navigation_path: /living-room/calendar}}
+                  - {<<: *btn, name: Meals, icon: mdi:silverware-fork-knife, tap_action: {action: navigate, navigation_path: /living-room/meals}}
+                  - {<<: *btn, name: Photos, icon: mdi:image-multiple, tap_action: {action: navigate, navigation_path: /living-room/photos}}
+                  - {<<: [*btn, *on], name: Lists, icon: mdi:format-list-checks, tap_action: {action: navigate, navigation_path: /living-room/lists}}
+                  # TODO: script.living_room_display_sleep does not exist yet. A later task creates it with the touchkio display controls.
+                  - {<<: *btn, name: Sleep, icon: mdi:power-sleep, tap_action: {action: perform-action, perform_action: script.living_room_display_sleep}}

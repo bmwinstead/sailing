@@ -1,12 +1,22 @@
 ---
+# Each file is encrypted for the shared KMS key (alias/sailing). The recipient sets the encryption context purpose=sops,
+# which the IAM policy of the sailing-flux-sops user requires (see aws/iam.tf).
 creation_rules:
   - path_regex: talos/.*\.sops\.ya?ml
     mac_only_encrypted: true
-    age: "age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el"
+    key_groups:
+      - kms:
+          - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
+            context:
+              purpose: sops
   - path_regex: (bootstrap|kubernetes)/.*\.sops\.ya?ml
     encrypted_regex: "^(data|stringData)$"
     mac_only_encrypted: true
-    age: "age1ahehja44hsq4vs6hzgne587xvl20v6utvvjkwefmzcy2p4srjf4sd6e8el"
+    key_groups:
+      - kms:
+          - arn: arn:aws:kms:us-east-2:338208726210:key/5f27f89c-2f4e-49c9-9263-63596049bde5
+            context:
+              purpose: sops
 stores:
   yaml:
     indent: 2
