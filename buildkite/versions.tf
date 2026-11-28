@@ -9,7 +9,7 @@ terraform {
 
     buildkite = {
       source  = "buildkite/buildkite"
-      version = "1.46.0"
+      version = "1.49.0"
     }
   }
 }
