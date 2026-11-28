@@ -255,36 +255,50 @@ checksum = "sha256:5735a2bd59071b814546c6d0a76f29a8fd3ebe06e3a4791dd2784804ae895
 url = "https://get.helm.sh/helm-v4.3.1-windows-amd64.tar.gz"
 
 [[tools.helmfile]]
-version = "1.8.2"
+version = "1.8.6"
 backend = "aqua:helmfile/helmfile"
 
 [tools.helmfile."platforms.linux-arm64"]
-checksum = "sha256:9163f0d7ad088d243d7305ba09c3465aac02dfebd658d46c62dbdaa11c224b16"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_linux_arm64.tar.gz"
+checksum = "sha256:99badd01aeff4e0478e925f2d10c3307a4e9ce0630033c4a77629bdcaf27760d"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803682870"
+provenance = "github-attestations"
 
 [tools.helmfile."platforms.linux-arm64-musl"]
-checksum = "sha256:9163f0d7ad088d243d7305ba09c3465aac02dfebd658d46c62dbdaa11c224b16"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_linux_arm64.tar.gz"
+checksum = "sha256:99badd01aeff4e0478e925f2d10c3307a4e9ce0630033c4a77629bdcaf27760d"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803682870"
+provenance = "github-attestations"
 
 [tools.helmfile."platforms.linux-x64"]
-checksum = "sha256:f179485c5bb9f8e20fbd8ea16d8807915988aba4d60131ee864fb3232452716e"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_linux_amd64.tar.gz"
+checksum = "sha256:2018c1c2a9a5f113f298565ad65199bde2a9c8f9b417a5237d998e55a8fd157b"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803683031"
+provenance = "github-attestations"
 
 [tools.helmfile."platforms.linux-x64-musl"]
-checksum = "sha256:f179485c5bb9f8e20fbd8ea16d8807915988aba4d60131ee864fb3232452716e"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_linux_amd64.tar.gz"
+checksum = "sha256:2018c1c2a9a5f113f298565ad65199bde2a9c8f9b417a5237d998e55a8fd157b"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803683031"
+provenance = "github-attestations"
 
 [tools.helmfile."platforms.macos-arm64"]
-checksum = "sha256:0e788f4aa7b4eea1ec0d1e278e0e66e845d5733be5f4e6cb7f832c779e656c72"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_darwin_arm64.tar.gz"
+checksum = "sha256:1f36688ab92407f2eaf0fdd2f2daeefadc202d62790e56f629c833c794c751e8"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803682873"
+provenance = "github-attestations"
 
 [tools.helmfile."platforms.macos-x64"]
-checksum = "sha256:e99b669bb02729d5c4b0f5de9d830298d336d5968dcac76c7c01635f67095574"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_darwin_amd64.tar.gz"
+checksum = "sha256:78bc66043b6706675b23facc0cfb36d9a2930d63ac0368e9664c49a199c5bdb0"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803682866"
+provenance = "github-attestations"
 
 [tools.helmfile."platforms.windows-x64"]
-checksum = "sha256:c13185673f1ee1547419a9312be6f3e18f0a715c1fdbd214df535c6358298e95"
-url = "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_windows_amd64.tar.gz"
+checksum = "sha256:14ee9efcb0b7ae431d40ea5cdbe52a45975ed5035c968c6f57ae55ddfd21049c"
+url = "https://github.com/helmfile/helmfile/releases/download/v1.8.6/helmfile_1.8.6_windows_amd64.tar.gz"
+url_api = "https://api.github.com/repos/helmfile/helmfile/releases/assets/803683024"
+provenance = "github-attestations"
 
 [[tools.jq]]
 version = "1.8.2"
