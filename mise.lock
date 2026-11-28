@@ -557,42 +557,42 @@ version = "2.9.1"
 backend = "pipx:makejinja"
 
 [[tools.python]]
-version = "3.14.5"
+version = "3.15.2"
 backend = "core:python"
 
 [tools.python."platforms.linux-arm64"]
-checksum = "sha256:bea1aa66159eaf97ade1225e40b7060d709154da961aa37792bb8066d8f6af49"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:dac9832fe240524c092015b99ed76fcef1a32a096d744fcb39eafa980d1a0ffa"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:011e29568c2a6ed64938fba0793ca6225c99bc4d804143a26875b5f9ee3fc7fa"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:64786e91bbd687c003c3e6b3dc4a616bc379164dd923f3b38745af650df1eca6"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-aarch64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64"]
-checksum = "sha256:dc10977b0db3bef1ee2275107fde6fe9c148135b556fa352e83c6baa67d17ed6"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+checksum = "sha256:d94bcba1ca1c63f591fa63109c3eeaacc76ee6796844ac7bdf2ae10715646f05"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:6bc02ce4575e5d5379f4533f3d3f77acfdfd5ccd9c4edf790fcdd84578a1df01"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
+checksum = "sha256:2f3a1407f26d14938b592de39195e0de78de501268beac14dbc8be3b14b9c6e4"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-x86_64-unknown-linux-musl-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-arm64"]
-checksum = "sha256:1bb0b3d45448dfe7e916dc62144cfd7d7a611dc6ccf05b8bb71662cc5c2a1ad2"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-aarch64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:2cc8874f034f7a0deff879530020108ebe6d318f5e8c6689673a866ab5fb7fdc"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-aarch64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.macos-x64"]
-checksum = "sha256:38662e526797db4e90b3381706b96821979fece0b536ac14b5c4e1a97e0590d5"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-apple-darwin-install_only_stripped.tar.gz"
+checksum = "sha256:f076837c5fb804e6f200841c3be3b2050633f7e19ea97934f81fd9727ada6b71"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-x86_64-apple-darwin-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [tools.python."platforms.windows-x64"]
-checksum = "sha256:4d26ade49e9571ccb3bd1a88cfc72c52b11a9a9f6e204a57f38592aed137566a"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260510/cpython-3.14.5+20260510-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+checksum = "sha256:547cdbb844edc425b235513fdf0267f64e8e59c8f484527bb7ef92d3aad91dd9"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261124/cpython-3.15.2+20261124-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 provenance = "github-attestations"
 
 [[tools.sd]]
