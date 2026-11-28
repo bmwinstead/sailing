@@ -67,36 +67,50 @@ checksum = "sha256:f141cded099c239171ad2cea6fb5da0fdaa2bd36104c3074d883f9546519e
 url = "https://github.com/cloudflare/cloudflared/releases/download/2026.5.0/cloudflared-windows-amd64.exe"
 
 [[tools.cue]]
-version = "0.16.1"
+version = "0.18.0"
 backend = "aqua:cue-lang/cue"
 
 [tools.cue."platforms.linux-arm64"]
-checksum = "sha256:3cc715a9e969f87b93c4fa34cfaef5388b93e96efa20b248e8ad6826abd25a83"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_linux_arm64.tar.gz"
+checksum = "sha256:20b99a70821f358413318d80c956d36214aa98f61307af19130d31c3490b8451"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930834"
 
 [tools.cue."platforms.linux-arm64-musl"]
-checksum = "sha256:3cc715a9e969f87b93c4fa34cfaef5388b93e96efa20b248e8ad6826abd25a83"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_linux_arm64.tar.gz"
+checksum = "sha256:20b99a70821f358413318d80c956d36214aa98f61307af19130d31c3490b8451"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930834"
 
 [tools.cue."platforms.linux-x64"]
-checksum = "sha256:5d644c1305a2b86504c8dcd2ec829cf5b4999efc2cf51ee375624e0455f774ae"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_linux_amd64.tar.gz"
+checksum = "sha256:6f763cc20c42174344fbead70737714d63a50c3fa7ec71179e67974c4f9c5f81"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930835"
 
 [tools.cue."platforms.linux-x64-musl"]
-checksum = "sha256:5d644c1305a2b86504c8dcd2ec829cf5b4999efc2cf51ee375624e0455f774ae"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_linux_amd64.tar.gz"
+checksum = "sha256:6f763cc20c42174344fbead70737714d63a50c3fa7ec71179e67974c4f9c5f81"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930835"
 
 [tools.cue."platforms.macos-arm64"]
-checksum = "sha256:a72b0cddb377c52d1b003bed9a335d893b70cd75a182cd5e3fee8bae30ddb6d6"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_darwin_arm64.tar.gz"
+checksum = "sha256:9f8959a8a8bee82db08facd890b138f285c0b850b8b18125086761c0fded58a5"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930830"
 
 [tools.cue."platforms.macos-x64"]
-checksum = "sha256:97b0d78e4c5ee49ff72145fd6ef4f4bab0bb332d55f29660de3fec2af5ec96a9"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_darwin_amd64.tar.gz"
+checksum = "sha256:d122cb6717bc6b80240882a3a85ae5d364e5483e57829c185d58214bd93206e9"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930833"
 
 [tools.cue."platforms.windows-x64"]
-checksum = "sha256:2f24123f458229fcf283db534bd86692ad1074da806defee0f0cc62976c0397c"
-url = "https://github.com/cue-lang/cue/releases/download/v0.16.1/cue_v0.16.1_windows_amd64.zip"
+checksum = "sha256:c2b17fc673b1395704cf4db657327c5f9da831edab5164531ec315ba05bb95b4"
+checksum_source = "mise-versions"
+url = "https://github.com/cue-lang/cue/releases/download/v0.18.0/cue_v0.18.0_windows_amd64.zip"
+url_api = "https://api.github.com/repos/cue-lang/cue/releases/assets/786930836"
 
 [[tools.flux2]]
 version = "2.10.0"
